@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import useEmblaCarousel from 'embla-carousel-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { SectionGradientHeading } from '@/components/ui/section-gradient-heading';
 import { SERVICE_TILE_PHOTO, serviceCardImage } from '@/lib/site-images';
 import { cn } from '@/lib/utils';
@@ -225,18 +225,47 @@ export default function ServicesBentoGrid({ className }: { className?: string })
   const isOpen = activeTile !== null;
   const shouldGoBackOnCloseRef = useRef(false);
 
-  const [emblaRef] = useEmblaCarousel({
+  const [emblaRef, emblaApi] = useEmblaCarousel({
     align: 'start',
     containScroll: 'trimSnaps',
     dragFree: false,
     loop: false,
   });
 
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+
+  const scrollServicesPrev = useCallback(() => {
+    emblaApi?.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollServicesNext = useCallback(() => {
+    emblaApi?.scrollNext();
+  }, [emblaApi]);
+
   const selectTile = (tile: TileConfig) => setActiveTile(tile);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!emblaApi || isDesktop) return;
+
+    const updateScrollButtons = () => {
+      setCanScrollPrev(emblaApi.canScrollPrev());
+      setCanScrollNext(emblaApi.canScrollNext());
+    };
+
+    updateScrollButtons();
+    emblaApi.on('select', updateScrollButtons);
+    emblaApi.on('reInit', updateScrollButtons);
+
+    return () => {
+      emblaApi.off('select', updateScrollButtons);
+      emblaApi.off('reInit', updateScrollButtons);
+    };
+  }, [emblaApi, isDesktop]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -303,7 +332,29 @@ export default function ServicesBentoGrid({ className }: { className?: string })
         role="region"
         aria-labelledby="uslugi-heading"
       >
-        <SectionGradientHeading id="uslugi-heading" title="Usługi" className="mb-8" />
+        <div className="mb-8 flex items-center justify-between gap-4 md:justify-center">
+          <SectionGradientHeading id="uslugi-heading" title="Usługi" className="mb-0 min-w-0" />
+          <div className="flex shrink-0 gap-2 md:hidden">
+            <button
+              type="button"
+              onClick={scrollServicesPrev}
+              disabled={!canScrollPrev}
+              className="rounded-lg border border-prive-border bg-prive-surface p-2 text-prive-text transition-all hover:bg-prive-gradient hover:text-white disabled:pointer-events-none disabled:opacity-40"
+              aria-label="Poprzednia usługa"
+            >
+              <ChevronLeft size={20} aria-hidden />
+            </button>
+            <button
+              type="button"
+              onClick={scrollServicesNext}
+              disabled={!canScrollNext}
+              className="rounded-lg border border-prive-border bg-prive-surface p-2 text-prive-text transition-all hover:bg-prive-gradient hover:text-white disabled:pointer-events-none disabled:opacity-40"
+              aria-label="Następna usługa"
+            >
+              <ChevronRight size={20} aria-hidden />
+            </button>
+          </div>
+        </div>
         {!isDesktop ? (
           <div
             className="-mx-4 px-4"
