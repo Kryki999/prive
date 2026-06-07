@@ -84,7 +84,7 @@ export default function ReelModal({
 
   const handleConsultation = () => {
     onOpenChange(false);
-    openConsultation();
+    requestAnimationFrame(() => openConsultation());
   };
 
   return (

@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { SectionGradientHeading } from '@/components/ui/section-gradient-heading';
 import { SERVICE_TILE_PHOTO, serviceCardImage } from '@/lib/site-images';
+import { lockPageScroll } from '@/lib/scroll-lock';
 import { cn } from '@/lib/utils';
 
 /* eslint-disable @next/next/no-img-element */
@@ -269,16 +270,11 @@ export default function ServicesBentoGrid({ className }: { className?: string })
 
   useEffect(() => {
     if (!isOpen) return;
+    return lockPageScroll();
+  }, [isOpen]);
 
-    const previousBodyOverflow = document.body.style.overflow;
-    const previousBodyOverflowX = document.body.style.overflowX;
-    const previousHtmlOverflow = document.documentElement.style.overflow;
-    const previousHtmlOverflowX = document.documentElement.style.overflowX;
-
-    document.body.style.overflow = 'hidden';
-    document.body.style.overflowX = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-    document.documentElement.style.overflowX = 'hidden';
+  useEffect(() => {
+    if (!isOpen) return;
 
     const onEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -287,14 +283,7 @@ export default function ServicesBentoGrid({ className }: { className?: string })
       }
     };
     window.addEventListener('keydown', onEscape);
-
-    return () => {
-      window.removeEventListener('keydown', onEscape);
-      document.body.style.overflow = previousBodyOverflow;
-      document.body.style.overflowX = previousBodyOverflowX;
-      document.documentElement.style.overflow = previousHtmlOverflow;
-      document.documentElement.style.overflowX = previousHtmlOverflowX;
-    };
+    return () => window.removeEventListener('keydown', onEscape);
   }, [isOpen]);
 
   useEffect(() => {

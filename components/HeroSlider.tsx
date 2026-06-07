@@ -37,7 +37,6 @@ interface Slide {
 
 const SLIDE_DURATION_MS = 6000;
 const EMBLA_SCROLL_DURATION = 19;
-const HOLD_PAUSE_THRESHOLD_MS = 250;
 
 const ctaPillSizeClass =
   'shrink-0 whitespace-nowrap text-xs px-5 py-3 tracking-wider gap-2 md:text-sm md:px-6 md:py-3.5';
@@ -127,9 +126,8 @@ function SlideContent({ slide }: { slide: Slide }) {
 interface HeroControlsProps {
   variant: 'desktop' | 'mobile';
   currentSlide: number;
-  progressKey: number;
+  slideProgress: number;
   isPlaying: boolean;
-  autoplayRunning: boolean;
   prefersReducedMotion: boolean;
   onTogglePlay: () => void;
   onGoToSlide: (index: number) => void;
@@ -138,9 +136,8 @@ interface HeroControlsProps {
 function HeroControls({
   variant,
   currentSlide,
-  progressKey,
+  slideProgress,
   isPlaying,
-  autoplayRunning,
   prefersReducedMotion,
   onTogglePlay,
   onGoToSlide,
@@ -158,15 +155,12 @@ function HeroControls({
     </button>
   );
 
-  const progressFillClass = [
-    'hero-progress-fill absolute inset-0 rounded-full bg-white',
-    !isPlaying || !autoplayRunning ? 'hero-progress-fill--paused' : '',
-    prefersReducedMotion ? 'hero-progress-fill--instant' : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
-
-  const progressStyle = { '--hero-slide-duration': `${SLIDE_DURATION_MS}ms` } as React.CSSProperties;
+  const progressScale = prefersReducedMotion ? 1 : slideProgress;
+  const progressFillClass = cn(
+    'absolute inset-0 origin-left rounded-full bg-white',
+    !isPlaying && !prefersReducedMotion ? 'hero-progress-fill--paused' : '',
+  );
+  const progressStyle = { transform: `scaleX(${progressScale})` };
 
   if (variant === 'desktop') {
     return (
@@ -180,7 +174,7 @@ function HeroControls({
                 className="relative h-1.5 w-10 rounded-full bg-white/30 overflow-hidden"
                 aria-hidden
               >
-                <div key={progressKey} className={progressFillClass} style={progressStyle} />
+                <div className={progressFillClass} style={progressStyle} />
               </div>
             ) : (
               <button
@@ -210,7 +204,7 @@ function HeroControls({
             aria-current={idx === currentSlide ? 'true' : undefined}
           >
             {idx === currentSlide ? (
-              <div key={progressKey} className={progressFillClass} style={progressStyle} />
+              <div className={progressFillClass} style={progressStyle} />
             ) : null}
           </button>
         ))}
@@ -225,21 +219,35 @@ export default function HeroSlider() {
   const isInViewport = useInViewport(sectionRef);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [progressKey, setProgressKey] = useState(0);
-  const [autoplayRunning, setAutoplayRunning] = useState(true);
+  const [slideProgress, setSlideProgress] = useState(0);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const isPlayingRef = useRef(isPlaying);
   const prefersReducedMotionRef = useRef(prefersReducedMotion);
   const isInViewportRef = useRef(isInViewport);
-  const lastSlideRef = useRef(0);
-  const needsInitialProgressSyncRef = useRef(true);
-  const shouldSyncProgressOnTimerSetRef = useRef(false);
+  const progressDeadlineRef = useRef<number | null>(null);
+  const isInteractionPausedRef = useRef(false);
+  const isManualTimingRef = useRef(false);
+  const savedRemainingMsRef = useRef<number | null>(null);
+  const slideAtPointerDownRef = useRef(0);
   const pointerDownAtRef = useRef(0);
+  const manualAdvanceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const readRemainingMs = useCallback((api: NonNullable<typeof emblaApi>) => {
+    if (progressDeadlineRef.current != null) {
+      return Math.max(0, progressDeadlineRef.current - Date.now());
+    }
+    const autoplay = api.plugins().autoplay;
+    if (autoplay?.isPlaying()) {
+      const remaining = autoplay.timeUntilNext();
+      if (remaining != null) return Math.max(0, remaining);
+    }
+    return SLIDE_DURATION_MS;
+  }, []);
 
   const autoplayPlugin = useRef(
     Autoplay({
       delay: SLIDE_DURATION_MS,
-      stopOnInteraction: false,
+      stopOnInteraction: true,
       playOnInit: true,
     }),
   );
@@ -274,6 +282,42 @@ export default function HeroSlider() {
     return () => mq.removeEventListener('change', update);
   }, []);
 
+  const clearManualAdvance = useCallback(() => {
+    if (manualAdvanceTimeoutRef.current) {
+      clearTimeout(manualAdvanceTimeoutRef.current);
+      manualAdvanceTimeoutRef.current = null;
+    }
+  }, []);
+
+  const advanceSlide = useCallback(() => {
+    if (!emblaApi) return;
+    clearManualAdvance();
+    isManualTimingRef.current = false;
+    if (emblaApi.canScrollNext()) {
+      emblaApi.scrollNext();
+    } else {
+      emblaApi.scrollTo(0);
+    }
+    if (isPlayingRef.current && !prefersReducedMotionRef.current) {
+      emblaApi.plugins().autoplay?.reset();
+    }
+  }, [emblaApi, clearManualAdvance]);
+
+  const scheduleResume = useCallback(
+    (remainingMs: number) => {
+      clearManualAdvance();
+      const continueWith = Math.max(0, remainingMs);
+      if (continueWith <= 0) {
+        advanceSlide();
+        return;
+      }
+      isManualTimingRef.current = true;
+      progressDeadlineRef.current = Date.now() + continueWith;
+      manualAdvanceTimeoutRef.current = setTimeout(advanceSlide, continueWith);
+    },
+    [advanceSlide, clearManualAdvance],
+  );
+
   useEffect(() => {
     if (!emblaApi) return;
 
@@ -282,75 +326,104 @@ export default function HeroSlider() {
 
     if (prefersReducedMotion || !isInViewport) {
       autoplay.stop();
-    } else if (isPlaying && !autoplay.isPlaying()) {
+      clearManualAdvance();
+    } else if (
+      isPlaying &&
+      !autoplay.isPlaying() &&
+      !isInteractionPausedRef.current &&
+      !isManualTimingRef.current
+    ) {
       autoplay.play();
     }
-  }, [emblaApi, prefersReducedMotion, isPlaying, isInViewport]);
+  }, [emblaApi, prefersReducedMotion, isPlaying, isInViewport, clearManualAdvance]);
+
+  useEffect(() => {
+    if (!isPlaying || prefersReducedMotion) {
+      if (prefersReducedMotion) setSlideProgress(1);
+      return;
+    }
+
+    let frame = 0;
+    const tick = () => {
+      if (!isInteractionPausedRef.current && progressDeadlineRef.current != null) {
+        const remaining = progressDeadlineRef.current - Date.now();
+        const progress = Math.min(1, Math.max(0, 1 - remaining / SLIDE_DURATION_MS));
+        setSlideProgress(progress);
+      }
+      frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [isPlaying, prefersReducedMotion, currentSlide]);
 
   useEffect(() => {
     if (!emblaApi) return;
 
-    const resetProgress = () => {
-      if (!isPlayingRef.current || prefersReducedMotionRef.current) return;
-      setProgressKey((k) => k + 1);
+    const syncSlide = () => {
+      setCurrentSlide(emblaApi.selectedScrollSnap());
     };
 
-    const syncSlide = (resetProgressOnChange: boolean) => {
-      const idx = emblaApi.selectedScrollSnap();
-      setCurrentSlide(idx);
-      if (resetProgressOnChange && idx !== lastSlideRef.current) {
-        lastSlideRef.current = idx;
-        resetProgress();
-      }
-      if (!resetProgressOnChange) {
-        lastSlideRef.current = idx;
-      }
-    };
-
-    const onSelect = () => syncSlide(true);
-    const onReInit = () => syncSlide(false);
-
-    const onPointerDown = () => {
-      pointerDownAtRef.current = Date.now();
-      shouldSyncProgressOnTimerSetRef.current = false;
-    };
-
-    const onPointerUp = () => {
-      if (Date.now() - pointerDownAtRef.current >= HOLD_PAUSE_THRESHOLD_MS) {
-        shouldSyncProgressOnTimerSetRef.current = true;
-      }
-    };
-
-    const onAutoplayPlay = () => setAutoplayRunning(true);
-    const onAutoplayStop = () => setAutoplayRunning(false);
     const onAutoplayTimerSet = () => {
       if (!isPlayingRef.current || prefersReducedMotionRef.current) return;
-      if (needsInitialProgressSyncRef.current || shouldSyncProgressOnTimerSetRef.current) {
-        needsInitialProgressSyncRef.current = false;
-        shouldSyncProgressOnTimerSetRef.current = false;
-        resetProgress();
-      }
+      if (isInteractionPausedRef.current || isManualTimingRef.current) return;
+      clearManualAdvance();
+      progressDeadlineRef.current = Date.now() + SLIDE_DURATION_MS;
+      setSlideProgress(0);
     };
 
-    emblaApi.on('select', onSelect);
-    emblaApi.on('reInit', onReInit);
-    emblaApi.on('pointerDown', onPointerDown);
-    emblaApi.on('pointerUp', onPointerUp);
-    emblaApi.on('autoplay:play', onAutoplayPlay);
-    emblaApi.on('autoplay:stop', onAutoplayStop);
+    const onPointerDownCapture = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element) || target.closest('[data-hero-content]')) return;
+
+      clearManualAdvance();
+      isManualTimingRef.current = false;
+      savedRemainingMsRef.current = readRemainingMs(emblaApi);
+      progressDeadlineRef.current = null;
+      slideAtPointerDownRef.current = emblaApi.selectedScrollSnap();
+      pointerDownAtRef.current = Date.now();
+      isInteractionPausedRef.current = true;
+      emblaApi.plugins().autoplay?.stop();
+    };
+
+    const finishInteraction = () => {
+      if (!isInteractionPausedRef.current) return;
+      isInteractionPausedRef.current = false;
+
+      const savedRemaining = savedRemainingMsRef.current;
+      savedRemainingMsRef.current = null;
+      if (!isPlayingRef.current || prefersReducedMotionRef.current) return;
+
+      const slideChanged = emblaApi.selectedScrollSnap() !== slideAtPointerDownRef.current;
+      if (slideChanged) {
+        isManualTimingRef.current = false;
+        if (isInViewportRef.current) {
+          emblaApi.plugins().autoplay?.reset();
+        }
+        return;
+      }
+
+      const heldMs = Date.now() - pointerDownAtRef.current;
+      scheduleResume((savedRemaining ?? SLIDE_DURATION_MS) - heldMs);
+    };
+
+    const root = emblaApi.rootNode();
+    root.addEventListener('pointerdown', onPointerDownCapture, true);
+    emblaApi.on('select', syncSlide);
+    emblaApi.on('reInit', syncSlide);
+    emblaApi.on('pointerUp', finishInteraction);
     emblaApi.on('autoplay:timerset', onAutoplayTimerSet);
-    onReInit();
+    syncSlide();
 
     return () => {
-      emblaApi.off('select', onSelect);
-      emblaApi.off('reInit', onReInit);
-      emblaApi.off('pointerDown', onPointerDown);
-      emblaApi.off('pointerUp', onPointerUp);
-      emblaApi.off('autoplay:play', onAutoplayPlay);
-      emblaApi.off('autoplay:stop', onAutoplayStop);
+      root.removeEventListener('pointerdown', onPointerDownCapture, true);
+      emblaApi.off('select', syncSlide);
+      emblaApi.off('reInit', syncSlide);
+      emblaApi.off('pointerUp', finishInteraction);
       emblaApi.off('autoplay:timerset', onAutoplayTimerSet);
+      clearManualAdvance();
     };
-  }, [emblaApi]);
+  }, [emblaApi, clearManualAdvance, scheduleResume, readRemainingMs]);
 
   const goToSlide = useCallback(
     (index: number) => {
@@ -369,20 +442,27 @@ export default function HeroSlider() {
       const autoplay = emblaApi?.plugins().autoplay;
       if (prefersReducedMotionRef.current) return next;
       if (next) {
+        clearManualAdvance();
+        isManualTimingRef.current = false;
+        isInteractionPausedRef.current = false;
+        progressDeadlineRef.current = Date.now() + SLIDE_DURATION_MS;
+        setSlideProgress(0);
         autoplay?.play();
-        setProgressKey((k) => k + 1);
       } else {
+        clearManualAdvance();
+        isManualTimingRef.current = false;
+        isInteractionPausedRef.current = false;
+        progressDeadlineRef.current = null;
         autoplay?.stop();
       }
       return next;
     });
-  }, [emblaApi]);
+  }, [emblaApi, clearManualAdvance]);
 
   const controlsProps = {
     currentSlide,
-    progressKey,
+    slideProgress,
     isPlaying,
-    autoplayRunning,
     prefersReducedMotion,
     onTogglePlay: handleTogglePlay,
     onGoToSlide: goToSlide,
@@ -417,6 +497,7 @@ export default function HeroSlider() {
               </div>
 
               <div
+                data-hero-content
                 className="absolute bottom-0 left-0 right-0 z-20 px-6 sm:px-12 md:px-20 pb-24 md:pb-20"
                 onPointerDownCapture={(event) => event.stopPropagation()}
               >
