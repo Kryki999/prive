@@ -11,6 +11,7 @@ import CertificatesSection from '@/components/certificates/CertificatesSection';
 import { DoctorsSection } from '@/components/doctors';
 import { DOCTORS } from '@/lib/doctors/doctors';
 import CooperationSection from '@/components/CooperationSection';
+import AirportTransferSection from '@/components/airport-transfer/AirportTransferSection';
 import PreFooterConsultationForm from '@/components/consultation-form/PreFooterConsultationForm';
 import LocationMapSection from '@/components/LocationMapSection';
 import Footer from '@/components/Footer';
@@ -30,6 +31,7 @@ export default function HomePage() {
       <DoctorsSection doctors={DOCTORS} />
       <CooperationSection />
       <AktualnosciSection />
+      <AirportTransferSection />
       <PreFooterConsultationForm />
       <LocationMapSection />
       <Footer />

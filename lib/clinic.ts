@@ -1,6 +1,17 @@
 export const CLINIC_PHONE = '+48 511 671 630';
+export const CLINIC_PHONE_LABEL = 'Konsultacje przed zabiegiem';
 
 export const CLINIC_PHONE_HREF = `tel:${CLINIC_PHONE.replace(/\s/g, '')}`;
+
+export const CLINIC_RECEPTION_PHONE = '+48 792 007 307';
+export const CLINIC_RECEPTION_PHONE_LABEL = 'Recepcja — umawianie wizyt';
+
+export const CLINIC_RECEPTION_PHONE_HREF = `tel:${CLINIC_RECEPTION_PHONE.replace(/\s/g, '')}`;
+
+export const CLINIC_BOOK_EMAIL = 'book@hairclinicprive.pl';
+export const CLINIC_BOOK_EMAIL_HREF = `mailto:${CLINIC_BOOK_EMAIL}`;
+
+export const CLINIC_RPM = '000000251921';
 
 export const CLINIC_ADDRESS_STREET = 'Piecewska 29 U20';
 export const CLINIC_ADDRESS_CITY = '80-288 Gdańsk';
