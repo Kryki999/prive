@@ -67,7 +67,7 @@ export default function GameDetails({ onPlayVideo }: GameDetailsProps) {
         bgImageMobile={BEFORE_AFTER_SHOWCASE_IMAGE_MOBILE}
         bgAlt="Hair Clinic PRIVÉ — efekty zabiegów przeszczepu włosów"
 
-        description="Żadnych filtrów i ulepszaczy. Zobacz rzeczywiste efekty zabiegów prowadzonych przez polską elitę chirurgii. Stawiamy na indywidualne projektowanie naturalnej linii włosów. Autentyczne metamorfozy, które mówią same za siebie."
+        description="Zobacz rzeczywiste efekty zabiegów prowadzonych przez polską elitę chirurgii. Stawiamy na indywidualne projektowanie naturalnej linii włosów. Autentyczne metamorfozy, które mówią same za siebie."
 
         learnMoreUrl="#kontakt"
 
