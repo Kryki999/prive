@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { ArrowRight, X } from 'lucide-react';
 import type { RefObject } from 'react';
 
+import { SECTION_GRADIENT_HEADING_CLASS } from '@/components/ui/section-gradient-heading';
 import {
   AKTUALNOSCI_ITEMS,
   formatAktualnoscDate,
@@ -98,9 +99,7 @@ export default function NewsfeedDrawer({
                 animate="visible"
               >
                 <motion.div variants={itemVariants}>
-                  <h2 className="text-xl font-extrabold tracking-tight text-prive-plum md:text-2xl">
-                    Najnowsze wpisy
-                  </h2>
+                  <h2 className={SECTION_GRADIENT_HEADING_CLASS}>Najnowsze wpisy</h2>
                   <p className="mt-2 max-w-prose text-sm leading-relaxed text-prive-text-muted">
                     Aktualności z Hair Clinic PRIVÉ — metody zabiegów, porady i historie pacjentów.
                   </p>

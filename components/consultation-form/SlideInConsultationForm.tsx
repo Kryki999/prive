@@ -169,7 +169,7 @@ export default function SlideInConsultationForm() {
             <div className="relative flex min-h-0 w-full flex-1 flex-col bg-[var(--prive-modal-surface)] md:w-1/2">
               <div
                 data-scroll-lock-scrollable
-                className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-12 pt-14 md:px-9 md:pb-14 md:pt-16"
+                className="consultation-drawer-scrollbar relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-12 pt-14 md:px-9 md:pb-14 md:pt-16"
               >
                 <ConsultationFormBody
                   onStepChange={setWizardStep}

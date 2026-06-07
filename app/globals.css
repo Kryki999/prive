@@ -276,6 +276,25 @@
   will-change: auto;
 }
 
+/* Hero slide 3 — slow credentials text marquee */
+@keyframes hero-credentials-marquee {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.hero-credentials-marquee__track {
+  animation: hero-credentials-marquee 120s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-credentials-marquee__track {
+    animation: none;
+    will-change: auto;
+  }
+}
+
 /* Below-fold sections — skip layout/paint until near viewport */
 .section-deferred {
   content-visibility: auto;
@@ -491,4 +510,28 @@
 .newsfeed-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: var(--prive-rose) var(--prive-surface);
+}
+
+.consultation-drawer-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.consultation-drawer-scrollbar::-webkit-scrollbar-track {
+  background: var(--prive-modal-surface);
+  border-radius: 9999px;
+}
+
+.consultation-drawer-scrollbar::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--prive-rose) 55%, var(--prive-plum));
+  border-radius: 9999px;
+}
+
+.consultation-drawer-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--prive-rose);
+}
+
+.consultation-drawer-scrollbar {
+  color-scheme: dark;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--prive-rose) 55%, var(--prive-plum)) var(--prive-modal-surface);
 }

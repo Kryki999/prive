@@ -1,5 +1,8 @@
 'use client';
 
+import { SECTION_GRADIENT_HEADING_CLASS } from '@/components/ui/section-gradient-heading';
+import { cn } from '@/lib/utils';
+
 import ConsultationFormBody from './ConsultationFormBody';
 import { CONSULTATION_FORM_IMAGE } from './form-data';
 
@@ -15,10 +18,9 @@ export default function PreFooterConsultationForm() {
         <header className="mb-12 max-w-4xl px-6 md:mb-14 md:px-0">
           <h2
             id="prefooter-consultation-heading"
-            className="text-balance text-3xl font-extrabold uppercase leading-[1.08] tracking-[0.06em] text-prive-plum md:text-4xl lg:text-5xl"
+            className={cn(SECTION_GRADIENT_HEADING_CLASS, 'w-fit text-balance')}
           >
-            Umów{' '}
-            <span className="text-prive-rose">darmową konsultację</span>
+            Umów darmową konsultację
           </h2>
           <p className="mt-4 max-w-[66ch] text-pretty text-sm leading-relaxed text-prive-text-muted md:mt-5 md:text-base">
             Wybierz zabieg, dołącz zdjęcia i zostaw numer — nasz zespół skontaktuje się z Tobą
@@ -50,7 +52,10 @@ export default function PreFooterConsultationForm() {
 
             <div className="w-full bg-prive-white p-5 sm:p-6 md:w-1/2 md:p-10 lg:p-12">
               <div className="mx-auto max-w-2xl">
-                <ConsultationFormBody mode="embedded" />
+                <ConsultationFormBody
+                  mode="embedded"
+                  titleId="prefooter-consultation-form-title"
+                />
               </div>
             </div>
           </div>

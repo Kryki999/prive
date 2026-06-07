@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from 'motion/react';
 import Link from 'next/link';
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -29,6 +29,14 @@ type ConsultationFormBodyProps = {
   quickContactEmail?: string;
 };
 
+function formIdPrefix(titleId: string | undefined, mode: 'drawer' | 'embedded') {
+  if (titleId?.endsWith('-title')) {
+    return titleId.slice(0, -'-title'.length);
+  }
+  if (titleId) return titleId;
+  return mode === 'drawer' ? 'consultation-drawer' : 'prefooter-consultation-form';
+}
+
 const stepVariants = {
   initial: (d: number) => ({ x: 44 * d, opacity: 0 }),
   animate: {
@@ -51,8 +59,8 @@ export default function ConsultationFormBody({
   onSuccessClose,
   quickContactEmail = QUICK_CONTACT_EMAIL,
 }: ConsultationFormBodyProps) {
-  const uid = useId();
-  const resolvedTitleId = titleId ?? `${uid}-title`;
+  const idPrefix = formIdPrefix(titleId, mode);
+  const resolvedTitleId = titleId ?? `${idPrefix}-title`;
   const [step, setStep] = useState<ConsultationStep>(1);
   const [direction, setDirection] = useState(1);
   const [treatment, setTreatment] = useState<TreatmentId | ''>('');
@@ -386,12 +394,12 @@ export default function ConsultationFormBody({
                   </div>
                 ) : showTextarea ? (
                   <div className="space-y-2">
-                    <label htmlFor={`${uid}-description`} className={labelClass}>
+                    <label htmlFor={`${idPrefix}-description`} className={labelClass}>
                       Opis oczekiwanego efektu
                     </label>
                     <textarea
                       ref={descriptionRef}
-                      id={`${uid}-description`}
+                      id={`${idPrefix}-description`}
                       rows={5}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
@@ -457,12 +465,12 @@ export default function ConsultationFormBody({
                 />
 
                 <div className="space-y-2">
-                  <label htmlFor={`${uid}-name`} className={labelClass}>
+                  <label htmlFor={`${idPrefix}-name`} className={labelClass}>
                     Imię
                   </label>
                   <input
                     ref={nameRef}
-                    id={`${uid}-name`}
+                    id={`${idPrefix}-name`}
                     type="text"
                     autoComplete="given-name"
                     required
@@ -477,11 +485,11 @@ export default function ConsultationFormBody({
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor={`${uid}-phone`} className={labelClass}>
+                  <label htmlFor={`${idPrefix}-phone`} className={labelClass}>
                     Numer telefonu
                   </label>
                   <ConsultationPhoneInput
-                    id={`${uid}-phone`}
+                    id={`${idPrefix}-phone`}
                     value={phone}
                     onChange={setPhone}
                     onFocus={() => nameRef.current && scrollFieldIntoView(nameRef.current)}
@@ -494,11 +502,11 @@ export default function ConsultationFormBody({
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor={`${uid}-email`} className={labelClass}>
+                  <label htmlFor={`${idPrefix}-email`} className={labelClass}>
                     E-mail (opcjonalnie)
                   </label>
                   <input
-                    id={`${uid}-email`}
+                    id={`${idPrefix}-email`}
                     type="email"
                     autoComplete="email"
                     value={email}

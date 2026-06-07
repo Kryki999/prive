@@ -6,7 +6,11 @@ import Autoplay from 'embla-carousel-autoplay';
 import { Play, Pause, Info, Mail } from 'lucide-react';
 import PriveLogo from '@/components/brand/PriveLogo';
 import { useConfigurator } from '@/components/consultation-form/configurator-shared';
+import HeroCredentialsMarquee from '@/components/hero/HeroCredentialsMarquee';
+import HeroGoogleReviewBadge from '@/components/hero/HeroGoogleReviewBadge';
 import HeroTrustStrip from '@/components/hero/HeroTrustStrip';
+import { HERO_CREDENTIALS_ITEMS } from '@/lib/hero/credentials-marquee';
+import { HERO_GOOGLE_REVIEW } from '@/lib/hero/google-review';
 import { HERO_TRUST_AVATARS } from '@/lib/hero/trust-avatars';
 import { HERO_SLIDE_CONFIG, resolveHeroSlideImages } from '@/lib/site-images';
 import useInViewport from '@/hooks/useInViewport';
@@ -27,9 +31,12 @@ interface Slide {
   secondaryBtnText: string;
   secondaryHref: string;
   trustStrip?: SlideTrustStrip;
+  googleReviewBadge?: boolean;
+  credentialsMarquee?: boolean;
 }
 
-const SLIDE_DURATION_MS = 8000;
+const SLIDE_DURATION_MS = 6000;
+const EMBLA_SCROLL_DURATION = 19;
 
 const ctaPillSizeClass =
   'shrink-0 whitespace-nowrap text-xs px-5 py-3 tracking-wider gap-2 md:text-sm md:px-6 md:py-3.5';
@@ -52,6 +59,8 @@ const slides: Slide[] = HERO_SLIDE_CONFIG.map((config) => {
     secondaryBtnText: config.secondaryBtnText,
     secondaryHref: config.secondaryHref,
     trustStrip: config.trustStrip,
+    googleReviewBadge: config.googleReviewBadge,
+    credentialsMarquee: config.credentialsMarquee,
   };
 });
 
@@ -62,9 +71,20 @@ function SlideContent({ slide }: { slide: Slide }) {
     <div
       className={cn(
         'flex flex-col items-start gap-4 md:gap-5',
-        slide.trustStrip && 'gap-3 sm:gap-4',
+        (slide.trustStrip || slide.googleReviewBadge || slide.credentialsMarquee) &&
+          'gap-3 sm:gap-4',
       )}
     >
+      {slide.credentialsMarquee ? (
+        <HeroCredentialsMarquee items={HERO_CREDENTIALS_ITEMS} />
+      ) : null}
+      {slide.googleReviewBadge ? (
+        <HeroGoogleReviewBadge
+          rating={HERO_GOOGLE_REVIEW.rating}
+          reviewCountLabel={HERO_GOOGLE_REVIEW.reviewCountLabel}
+          href={HERO_GOOGLE_REVIEW.href}
+        />
+      ) : null}
       {slide.trustStrip ? (
         <HeroTrustStrip
           label={slide.trustStrip.label}
@@ -108,6 +128,7 @@ interface HeroControlsProps {
   currentSlide: number;
   progressKey: number;
   isPlaying: boolean;
+  autoplayRunning: boolean;
   prefersReducedMotion: boolean;
   onTogglePlay: () => void;
   onGoToSlide: (index: number) => void;
@@ -118,6 +139,7 @@ function HeroControls({
   currentSlide,
   progressKey,
   isPlaying,
+  autoplayRunning,
   prefersReducedMotion,
   onTogglePlay,
   onGoToSlide,
@@ -137,7 +159,7 @@ function HeroControls({
 
   const progressFillClass = [
     'hero-progress-fill absolute inset-0 rounded-full bg-white',
-    !isPlaying ? 'hero-progress-fill--paused' : '',
+    !isPlaying || !autoplayRunning ? 'hero-progress-fill--paused' : '',
     prefersReducedMotion ? 'hero-progress-fill--instant' : '',
   ]
     .filter(Boolean)
@@ -203,15 +225,17 @@ export default function HeroSlider() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [progressKey, setProgressKey] = useState(0);
+  const [autoplayRunning, setAutoplayRunning] = useState(true);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const isPlayingRef = useRef(isPlaying);
   const prefersReducedMotionRef = useRef(prefersReducedMotion);
   const isInViewportRef = useRef(isInViewport);
+  const lastSlideRef = useRef(0);
 
   const autoplayPlugin = useRef(
     Autoplay({
       delay: SLIDE_DURATION_MS,
-      stopOnInteraction: true,
+      stopOnInteraction: false,
       playOnInit: true,
     }),
   );
@@ -220,7 +244,7 @@ export default function HeroSlider() {
     {
       loop: true,
       align: 'start',
-      duration: 25,
+      duration: EMBLA_SCROLL_DURATION,
       watchDrag: true,
     },
     [autoplayPlugin.current],
@@ -254,7 +278,7 @@ export default function HeroSlider() {
 
     if (prefersReducedMotion || !isInViewport) {
       autoplay.stop();
-    } else if (isPlaying) {
+    } else if (isPlaying && !autoplay.isPlaying()) {
       autoplay.play();
     }
   }, [emblaApi, prefersReducedMotion, isPlaying, isInViewport]);
@@ -262,45 +286,45 @@ export default function HeroSlider() {
   useEffect(() => {
     if (!emblaApi) return;
 
-    const onSelect = () => {
-      setCurrentSlide(emblaApi.selectedScrollSnap());
-      setProgressKey((k) => k + 1);
+    const syncSlide = (resetProgress: boolean) => {
+      const idx = emblaApi.selectedScrollSnap();
+      setCurrentSlide(idx);
+      if (resetProgress && idx !== lastSlideRef.current) {
+        lastSlideRef.current = idx;
+        setProgressKey((k) => k + 1);
+      }
+      if (!resetProgress) {
+        lastSlideRef.current = idx;
+      }
     };
 
+    const onSelect = () => syncSlide(true);
+    const onReInit = () => syncSlide(false);
+
+    const onAutoplayPlay = () => setAutoplayRunning(true);
+    const onAutoplayStop = () => setAutoplayRunning(false);
+
     emblaApi.on('select', onSelect);
-    emblaApi.on('reInit', onSelect);
-    onSelect();
+    emblaApi.on('reInit', onReInit);
+    emblaApi.on('autoplay:play', onAutoplayPlay);
+    emblaApi.on('autoplay:stop', onAutoplayStop);
+    syncSlide(false);
 
     return () => {
       emblaApi.off('select', onSelect);
-      emblaApi.off('reInit', onSelect);
-    };
-  }, [emblaApi]);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-
-    const onSettle = () => {
-      if (
-        prefersReducedMotionRef.current ||
-        !isPlayingRef.current ||
-        !isInViewportRef.current
-      ) {
-        return;
-      }
-      emblaApi.plugins().autoplay?.play();
-      setProgressKey((k) => k + 1);
-    };
-
-    emblaApi.on('settle', onSettle);
-    return () => {
-      emblaApi.off('settle', onSettle);
+      emblaApi.off('reInit', onReInit);
+      emblaApi.off('autoplay:play', onAutoplayPlay);
+      emblaApi.off('autoplay:stop', onAutoplayStop);
     };
   }, [emblaApi]);
 
   const goToSlide = useCallback(
     (index: number) => {
-      emblaApi?.scrollTo(index);
+      if (!emblaApi) return;
+      emblaApi.scrollTo(index);
+      if (isPlayingRef.current && !prefersReducedMotionRef.current && isInViewportRef.current) {
+        emblaApi.plugins().autoplay?.reset();
+      }
     },
     [emblaApi],
   );
@@ -310,8 +334,12 @@ export default function HeroSlider() {
       const next = !prev;
       const autoplay = emblaApi?.plugins().autoplay;
       if (prefersReducedMotionRef.current) return next;
-      if (next) autoplay?.play();
-      else autoplay?.stop();
+      if (next) {
+        autoplay?.play();
+        setProgressKey((k) => k + 1);
+      } else {
+        autoplay?.stop();
+      }
       return next;
     });
   }, [emblaApi]);
@@ -320,6 +348,7 @@ export default function HeroSlider() {
     currentSlide,
     progressKey,
     isPlaying,
+    autoplayRunning,
     prefersReducedMotion,
     onTogglePlay: handleTogglePlay,
     onGoToSlide: goToSlide,
@@ -353,7 +382,10 @@ export default function HeroSlider() {
                 </picture>
               </div>
 
-              <div className="absolute bottom-0 left-0 right-0 z-20 px-6 sm:px-12 md:px-20 pb-24 md:pb-20">
+              <div
+                className="absolute bottom-0 left-0 right-0 z-20 px-6 sm:px-12 md:px-20 pb-24 md:pb-20"
+                onPointerDownCapture={(event) => event.stopPropagation()}
+              >
                 <div className="w-full min-w-0 max-w-4xl">
                   <SlideContent slide={slide} />
                 </div>

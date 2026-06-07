@@ -39,11 +39,18 @@ export default function GameDetails({ onPlayVideo }: GameDetailsProps) {
         bgImageMobile={PATIENT_STORIES_SHOWCASE_IMAGE_MOBILE}
         bgAlt="Hair Clinic PRIVÉ — historie pacjentów"
 
-        description="Poznaj historie naszych podopiecznych — od pierwszej konsultacji po efekty miesięcy po zabiegu. Krótkie filmy pokazują realne rezultaty przeszczepów włosów i brody."
+        description="Przejdź przez metamorfozę z zespołem, dla którego najwyższe europejskie standardy to codzienność. Ponad 95% przyjętych włosów i pełna opieka lekarzy na każdym etapie. Zobacz wideo-relacje mężczyzn, którzy podjęli najlepszą decyzję."
 
         learnMoreUrl="#kontakt"
 
-        platforms={['DHI', 'FUE', 'Broda', 'Konsultacja']}
+        platforms={[
+          'WRÓĆDOGRY',
+          'NAJWYŻSZA SKUTECZNOŚĆ W POLSCE',
+          'PRAWDZIWEHISTORIE',
+          '100% LEKARZE CHIRURDZY',
+          'POLSKIE TOWARZYSTWO DERMATOLOGICZNE',
+          'EUROPEJSKI STANDARD MEDYCZNY CZŁONEK EHRS',
+        ]}
 
         reels={PATIENT_STORY_REELS}
 
@@ -63,11 +70,17 @@ export default function GameDetails({ onPlayVideo }: GameDetailsProps) {
         bgImageMobile={BEFORE_AFTER_SHOWCASE_IMAGE_MOBILE}
         bgAlt="Hair Clinic PRIVÉ — efekty zabiegów przeszczepu włosów"
 
-        description="Zobacz realne efekty naszych zabiegów — porównaj zdjęcia przed i po przeszczepie włosów lub brody. Przesuń suwak lub przełącz widok obok siebie, aby dokładnie ocenić rezultat."
+        description="Żadnych filtrów i ulepszaczy. Zobacz rzeczywiste efekty zabiegów prowadzonych przez polską elitę chirurgii. Zamiast masowych, taśmowych procedur stawiamy na indywidualne projektowanie naturalnej linii włosów dostosowanej do Twojej anatomii. Autentyczne metamorfozy, które mówią same za siebie."
 
         learnMoreUrl="#kontakt"
 
-        platforms={['DHI', 'FUE', 'Broda', 'Zagęszczenie']}
+        platforms={[
+          'BEZ RETUSZU I FILTRÓW',
+          'CHIRURGICZNA PRECYZJA',
+          'TECHNOLOGIA FUE NON-WASTE',
+          'POLSKA ELITA MEDYCZNA',
+          'NATURALNA LINIA WŁOSÓW i PEŁNE WSPARCIE',
+        ]}
 
         beforeAfterCases={BEFORE_AFTER_CASES}
 

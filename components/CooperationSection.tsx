@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   type LucideIcon,
 } from 'lucide-react';
+import { SECTION_GRADIENT_HEADING_CLASS } from '@/components/ui/section-gradient-heading';
 import usePrefetchImagesWhenVisible from '@/hooks/usePrefetchImagesWhenVisible';
 import { AKTUALNOSCI_ITEMS } from '@/lib/aktualnosci/data';
 import { cn } from '@/lib/utils';
@@ -155,7 +156,10 @@ export default function CooperationSection() {
         className="section-deferred scroll-mt-[calc(var(--site-header-h,5rem)+1rem)] border-t border-prive-border bg-prive-white py-12 md:py-16"
       >
         <div className="mx-auto max-w-6xl px-4 md:px-8">
-          <h2 id="cooperation-heading" className="section-title mb-6 md:mb-8">
+          <h2
+            id="cooperation-heading"
+            className={cn(SECTION_GRADIENT_HEADING_CLASS, 'mb-6 w-fit md:mb-8')}
+          >
             Jak wygląda współpraca
           </h2>
 

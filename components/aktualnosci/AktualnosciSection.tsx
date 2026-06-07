@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowRight, Bell } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
+import { SECTION_GRADIENT_HEADING_CLASS } from '@/components/ui/section-gradient-heading';
 import {
   AKTUALNOSCI_ITEMS,
   formatAktualnoscDate,
@@ -125,9 +126,8 @@ export default function AktualnosciSection() {
           strokeWidth={1.4}
           aria-hidden
         />
-        <h2 id="aktualnosci-heading" className="section-title mb-0 border-0 p-0 normal-case">
-          <span className="text-prive-plum">Najnowsze</span>{' '}
-          <span className="text-prive-rose">wpisy</span>
+        <h2 id="aktualnosci-heading" className={cn(SECTION_GRADIENT_HEADING_CLASS, 'mb-0')}>
+          Najnowsze wpisy
         </h2>
       </header>
 

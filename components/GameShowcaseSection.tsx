@@ -160,7 +160,7 @@ export default function GameShowcaseSection({
                 <div className="shrink-0 origin-left scale-[0.95] sm:scale-100 md:scale-110 lg:scale-[1.25] md:mr-3 lg:mr-4">
                   <PriveLogo variant="hero" hairRose className="items-start" />
                 </div>
-                <p className="min-w-0 flex-1 text-sm leading-relaxed text-white/85 drop-shadow sm:text-base md:text-lg">
+                <p className="min-w-0 flex-1 text-sm leading-relaxed text-white drop-shadow-md sm:text-base md:text-lg">
                   {description}
                 </p>
               </div>
@@ -181,7 +181,7 @@ export default function GameShowcaseSection({
                   {platforms.map((platform) => (
                     <span
                       key={platform}
-                      className="rounded bg-white/10 px-2 py-1 text-xs font-black text-white"
+                      className="rounded bg-white/10 px-2 py-1 text-xs font-black uppercase text-white"
                     >
                       {platform}
                     </span>

@@ -91,6 +91,8 @@ export type HeroSlideConfig = {
     overflowCount: number;
     overflowHref: string;
   };
+  googleReviewBadge?: boolean;
+  credentialsMarquee?: boolean;
 };
 
 export const HERO_SLIDE_CONFIG: HeroSlideConfig[] = [
@@ -114,6 +116,7 @@ export const HERO_SLIDE_CONFIG: HeroSlideConfig[] = [
     photo: 'barberRazor',
     secondaryBtnText: 'Efekty naszej pracy',
     secondaryHref: '#efekty-naszej-pracy',
+    googleReviewBadge: true,
   },
   {
     id: 'specjalisci',
@@ -122,6 +125,7 @@ export const HERO_SLIDE_CONFIG: HeroSlideConfig[] = [
     photo: 'barberShop',
     secondaryBtnText: 'Poznaj naszych lekarzy',
     secondaryHref: '#lekarze',
+    credentialsMarquee: true,
   },
 ];
 
