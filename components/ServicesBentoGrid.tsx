@@ -7,7 +7,6 @@ import { AnimatePresence, motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { SectionGradientHeading } from '@/components/ui/section-gradient-heading';
 import { SERVICE_TILE_PHOTO, serviceCardImage } from '@/lib/site-images';
-import { lockPageScroll } from '@/lib/scroll-lock';
 import { cn } from '@/lib/utils';
 
 /* eslint-disable @next/next/no-img-element */
@@ -267,11 +266,6 @@ export default function ServicesBentoGrid({ className }: { className?: string })
       emblaApi.off('reInit', updateScrollButtons);
     };
   }, [emblaApi, isDesktop]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    return lockPageScroll();
-  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;

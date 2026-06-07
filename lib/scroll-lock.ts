@@ -1,24 +1,26 @@
+type StyleSnapshot = {
+  scrollY: number;
+  body: {
+    position: string;
+    top: string;
+    left: string;
+    right: string;
+    width: string;
+    overflow: string;
+    overflowX: string;
+    paddingRight: string;
+  };
+  html: {
+    overflow: string;
+    overflowX: string;
+  };
+};
+
 let lockCount = 0;
-let savedScrollY = 0;
-let useFixedBody = false;
-let listenersAttached = false;
+let snapshot: StyleSnapshot | null = null;
 
 function getScrollbarWidth(): number {
   return window.innerWidth - document.documentElement.clientWidth;
-}
-
-/** Phones/tablets — position:fixed on body breaks touch scroll restore on iOS Safari. */
-function shouldUseFixedBodyLock(): boolean {
-  if (typeof window === 'undefined') return true;
-  return !window.matchMedia('(pointer: coarse)').matches;
-}
-
-function readScrollY(): number {
-  if (document.body.style.position === 'fixed') {
-    const top = parseInt(document.body.style.top, 10);
-    return Number.isFinite(top) ? Math.abs(top) : window.scrollY;
-  }
-  return window.scrollY;
 }
 
 function isInsideScrollableLockTarget(target: EventTarget | null): boolean {
@@ -36,110 +38,75 @@ function onWheel(e: WheelEvent) {
   e.preventDefault();
 }
 
-function attachListeners() {
-  if (listenersAttached) return;
-  document.addEventListener('touchmove', onTouchMove, { passive: false });
-  document.addEventListener('wheel', onWheel, { passive: false });
-  listenersAttached = true;
-}
+/** Blokuje scroll strony (mobile + desktop). Ref-count — bezpieczne przy wielu overlayach. */
+export function lockPageScroll(): () => void {
+  lockCount += 1;
+  if (lockCount > 1) {
+    return () => {
+      lockCount -= 1;
+    };
+  }
 
-function detachListeners() {
-  if (!listenersAttached) return;
-  document.removeEventListener('touchmove', onTouchMove);
-  document.removeEventListener('wheel', onWheel);
-  listenersAttached = false;
-}
+  const scrollY = window.scrollY;
+  const scrollbarWidth = getScrollbarWidth();
 
-function applyLockStyles(scrollY: number, scrollbarWidth: number, fixedBody: boolean) {
+  snapshot = {
+    scrollY,
+    body: {
+      position: document.body.style.position,
+      top: document.body.style.top,
+      left: document.body.style.left,
+      right: document.body.style.right,
+      width: document.body.style.width,
+      overflow: document.body.style.overflow,
+      overflowX: document.body.style.overflowX,
+      paddingRight: document.body.style.paddingRight,
+    },
+    html: {
+      overflow: document.documentElement.style.overflow,
+      overflowX: document.documentElement.style.overflowX,
+    },
+  };
+
   document.documentElement.style.overflow = 'hidden';
   document.documentElement.style.overflowX = 'hidden';
-  document.body.style.overflow = 'hidden';
-  document.body.style.overflowX = 'hidden';
-
-  if (!fixedBody) return;
 
   document.body.style.position = 'fixed';
   document.body.style.top = `-${scrollY}px`;
   document.body.style.left = '0';
   document.body.style.right = '0';
   document.body.style.width = '100%';
+  document.body.style.overflow = 'hidden';
+  document.body.style.overflowX = 'hidden';
   if (scrollbarWidth > 0) {
     document.body.style.paddingRight = `${scrollbarWidth}px`;
   }
-}
 
-function clearLockStyles() {
-  document.documentElement.style.overflow = '';
-  document.documentElement.style.overflowX = '';
-  document.body.style.position = '';
-  document.body.style.top = '';
-  document.body.style.left = '';
-  document.body.style.right = '';
-  document.body.style.width = '';
-  document.body.style.overflow = '';
-  document.body.style.overflowX = '';
-  document.body.style.paddingRight = '';
-}
-
-function restoreScrollPosition(scrollY: number) {
-  const apply = () => {
-    window.scrollTo(0, scrollY);
-    document.documentElement.scrollTop = scrollY;
-    document.body.scrollTop = scrollY;
-  };
-  apply();
-  requestAnimationFrame(() => {
-    requestAnimationFrame(apply);
-  });
-}
-
-function releaseLock() {
-  const scrollY = savedScrollY;
-  const hadFixedBody = useFixedBody;
-
-  detachListeners();
-  clearLockStyles();
-  savedScrollY = 0;
-  useFixedBody = false;
-
-  if (hadFixedBody) {
-    restoreScrollPosition(scrollY);
-  }
-}
-
-/** Blokuje scroll strony (mobile + desktop). Ref-count — bezpieczne przy wielu overlayach. */
-export function lockPageScroll(): () => void {
-  lockCount += 1;
-  if (lockCount > 1) {
-    return () => {
-      lockCount = Math.max(0, lockCount - 1);
-    };
-  }
-
-  savedScrollY = readScrollY();
-  useFixedBody = shouldUseFixedBodyLock();
-  applyLockStyles(savedScrollY, getScrollbarWidth(), useFixedBody);
-  attachListeners();
+  document.addEventListener('touchmove', onTouchMove, { passive: false });
+  document.addEventListener('wheel', onWheel, { passive: false });
 
   return () => {
-    lockCount = Math.max(0, lockCount - 1);
-    if (lockCount === 0) {
-      releaseLock();
-    }
+    lockCount -= 1;
+    if (lockCount > 0 || !snapshot) return;
+
+    const saved = snapshot;
+    snapshot = null;
+
+    document.documentElement.style.overflow = saved.html.overflow;
+    document.documentElement.style.overflowX = saved.html.overflowX;
+
+    document.body.style.position = saved.body.position;
+    document.body.style.top = saved.body.top;
+    document.body.style.left = saved.body.left;
+    document.body.style.right = saved.body.right;
+    document.body.style.width = saved.body.width;
+    document.body.style.overflow = saved.body.overflow;
+    document.body.style.overflowX = saved.body.overflowX;
+    document.body.style.paddingRight = saved.body.paddingRight;
+
+    document.removeEventListener('touchmove', onTouchMove);
+    document.removeEventListener('wheel', onWheel);
+
+    window.scrollTo(0, saved.scrollY);
   };
-}
-
-/** Twardy reset — gdy ref-count się rozjedzie (np. po animacji modala). */
-export function forceUnlockPageScroll(): void {
-  lockCount = 0;
-  releaseLock();
-}
-
-/** Lock zwolniony logicznie, ale DOM nadal zablokowany. */
-export function isPageScrollLockStuck(): boolean {
-  return (
-    listenersAttached ||
-    document.body.style.position === 'fixed' ||
-    document.documentElement.style.overflow === 'hidden'
-  );
 }
