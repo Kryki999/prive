@@ -10,6 +10,7 @@ import type { BeforeAfterCase } from '@/components/before-after/types';
 import PatientStoriesReels from '@/components/patient-stories/PatientStoriesReels';
 import type { PatientStoryReel } from '@/components/patient-stories/types';
 import type { CarouselApi } from '@/components/ui/carousel';
+import { SECTION_GRADIENT_HEADING_CLASS } from '@/components/ui/section-gradient-heading';
 import { cn } from '@/lib/utils';
 
 const ctaPillSizeClass =
@@ -178,9 +179,7 @@ export default function GameShowcaseSection({
         <div className="bg-prive-white py-16">
           <div className="max-w-7xl mx-auto px-4 md:px-8">
             <div className="mb-8 flex items-center justify-between gap-4">
-              <h3 className="text-prive-gradient text-xl font-black uppercase tracking-wider md:text-2xl">
-                {jumpTitle}
-              </h3>
+              <h3 className={SECTION_GRADIENT_HEADING_CLASS}>{jumpTitle}</h3>
               {showHeaderArrows && (
                 <div
                   className={cn(

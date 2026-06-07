@@ -3,7 +3,7 @@
 
 
 import { useConfigurator } from '@/components/consultation-form/configurator-shared';
-
+import { SectionGradientHeading } from '@/components/ui/section-gradient-heading';
 import GraftSummary from '@/components/graft-calculator/GraftSummary';
 
 import ScalpMap, {
@@ -62,21 +62,12 @@ export default function GraftCalculatorSection() {
 
       <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-4">
 
-        <div className="mx-auto max-w-3xl text-center">
-
-          <h2 className="text-3xl font-extrabold tracking-tight text-prive-plum md:text-4xl">
-
-            Kalkulator graftów
-
-          </h2>
-
-          <p className="mt-3 text-sm text-prive-text-muted md:mt-4 md:text-base">
-
-            Wybierz obszary do przeszczepu włosów — kliknij na model lub zaznacz strefy na liście.
-
-          </p>
-
-        </div>
+        <SectionGradientHeading
+          id="kalkulator-graftow-heading"
+          title="Kalkulator graftów"
+          subtitle="Wybierz obszary do przeszczepu włosów — kliknij na model lub zaznacz strefy na liście."
+          className="mx-auto max-w-3xl"
+        />
 
 
 

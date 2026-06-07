@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import useEmblaCarousel from 'embla-carousel-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { X } from 'lucide-react';
+import { SectionGradientHeading } from '@/components/ui/section-gradient-heading';
 import { SERVICE_TILE_PHOTO, serviceCardImage } from '@/lib/site-images';
 import { cn } from '@/lib/utils';
 
@@ -300,8 +301,9 @@ export default function ServicesBentoGrid({ className }: { className?: string })
       <div
         className={cn('w-full max-w-6xl mx-auto', className)}
         role="region"
-        aria-label="Usługi"
+        aria-labelledby="uslugi-heading"
       >
+        <SectionGradientHeading id="uslugi-heading" title="Usługi" className="mb-8" />
         {!isDesktop ? (
           <div
             className="-mx-4 px-4"
