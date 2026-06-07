@@ -51,6 +51,28 @@ const stepVariants = {
   }),
 };
 
+function scrollElementIntoScrollRoot(el: HTMLElement | null, align: 'start' | 'center' = 'start') {
+  if (!el) return;
+
+  const scrollRoot = el.closest('[data-scroll-lock-scrollable]') as HTMLElement | null;
+  if (!scrollRoot) {
+    el.scrollIntoView({ behavior: 'smooth', block: align });
+    return;
+  }
+
+  const rootRect = scrollRoot.getBoundingClientRect();
+  const elRect = el.getBoundingClientRect();
+  const offset =
+    align === 'center'
+      ? elRect.top - rootRect.top - (rootRect.height - elRect.height) / 2
+      : elRect.top - rootRect.top - 16;
+
+  scrollRoot.scrollTo({
+    top: scrollRoot.scrollTop + offset,
+    behavior: 'smooth',
+  });
+}
+
 export default function ConsultationFormBody({
   onStepChange,
   keyboardBottomInset = 0,
@@ -109,7 +131,7 @@ export default function ConsultationFormBody({
       isInitialMount.current = false;
       return;
     }
-    formContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scrollElementIntoScrollRoot(formContainerRef.current);
   }, [step]);
 
   useEffect(() => {
@@ -121,7 +143,7 @@ export default function ConsultationFormBody({
   }, [step, mode, treatment]);
 
   const scrollFieldIntoView = (el: HTMLElement) => {
-    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    scrollElementIntoScrollRoot(el, 'center');
   };
 
   const resetWizard = useCallback(() => {

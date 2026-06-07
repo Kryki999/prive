@@ -17,17 +17,26 @@ export default function SlideInConsultationForm() {
   const { isOpen, close } = useConfigurator();
   const panelRef = useRef<HTMLElement>(null);
   const [wizardStep, setWizardStep] = useState<ConsultationStep | null>(null);
+  const [scrollLocked, setScrollLocked] = useState(false);
   const [keyboardBottomInset, setKeyboardBottomInset] = useState(0);
   const panEligible = useRef(false);
+
+  const handleClose = useCallback(() => {
+    close();
+  }, [close]);
+
+  useEffect(() => {
+    if (isOpen) setScrollLocked(true);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) setWizardStep(null);
   }, [isOpen]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!scrollLocked) return;
     return lockPageScroll();
-  }, [isOpen]);
+  }, [scrollLocked]);
 
   useEffect(() => {
     const vv = window.visualViewport;
@@ -55,7 +64,7 @@ export default function SlideInConsultationForm() {
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        close();
+        handleClose();
         return;
       }
       if (e.key !== 'Tab') return;
@@ -80,7 +89,7 @@ export default function SlideInConsultationForm() {
 
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, wizardStep, close]);
+  }, [isOpen, wizardStep, handleClose]);
 
   const onPanStart = useCallback(
     (_event: PointerEvent, info: { point: { x: number; y: number } }) => {
@@ -111,13 +120,13 @@ export default function SlideInConsultationForm() {
       const { offset, velocity } = info;
       if (offset.x < 40) return;
       if (Math.abs(velocity.y) > Math.abs(velocity.x) + 120) return;
-      if (offset.x > 64 || velocity.x > 200) close();
+      if (offset.x > 64 || velocity.x > 200) handleClose();
     },
-    [close],
+    [handleClose],
   );
 
   return (
-    <AnimatePresence>
+    <AnimatePresence onExitComplete={() => setScrollLocked(false)}>
       {isOpen ? (
         <>
           <motion.div
@@ -129,7 +138,7 @@ export default function SlideInConsultationForm() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.35, ease: drawerSlideTransition.ease }}
             className="fixed inset-0 z-[115] bg-prive-plum/45 backdrop-blur-sm md:backdrop-blur-md"
-            onClick={close}
+            onClick={handleClose}
           />
           <motion.aside
             ref={panelRef}
@@ -176,14 +185,14 @@ export default function SlideInConsultationForm() {
                   keyboardBottomInset={keyboardBottomInset}
                   mode="drawer"
                   titleId="consultation-dialog-title"
-                  onSuccessClose={close}
+                  onSuccessClose={handleClose}
                 />
               </div>
               <button
                 type="button"
                 aria-label="Zamknij formularz konsultacji"
                 className="absolute right-5 top-5 z-[2] rounded-md p-2 text-white/55 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prive-rose/45 md:right-9 md:top-8"
-                onClick={close}
+                onClick={handleClose}
               >
                 <X className="size-5 shrink-0" strokeWidth={1.5} aria-hidden />
               </button>

@@ -2,6 +2,8 @@
 
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 
+import { blurActiveElement } from '@/lib/scroll-lock';
+
 import SlideInConsultationForm from './SlideInConsultationForm';
 import {
   ConfiguratorContext,
@@ -12,7 +14,10 @@ export function ConfiguratorProvider({ children }: { children: ReactNode }) {
   const [isOpen, setOpen] = useState(false);
 
   const open = useCallback(() => setOpen(true), []);
-  const close = useCallback(() => setOpen(false), []);
+  const close = useCallback(() => {
+    blurActiveElement();
+    setOpen(false);
+  }, []);
   const toggle = useCallback(() => setOpen((v) => !v), []);
 
   const value = useMemo<ConfiguratorContextValue>(
