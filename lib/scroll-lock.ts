@@ -16,9 +16,8 @@ type StyleSnapshot = {
   };
 };
 
-const activeLocks = new Set<symbol>();
+let lockCount = 0;
 let snapshot: StyleSnapshot | null = null;
-let listenersAttached = false;
 
 function getScrollbarWidth(): number {
   return window.innerWidth - document.documentElement.clientWidth;
@@ -39,21 +38,15 @@ function onWheel(e: WheelEvent) {
   e.preventDefault();
 }
 
-function attachScrollBlockListeners() {
-  if (listenersAttached) return;
-  document.addEventListener('touchmove', onTouchMove, { passive: false });
-  document.addEventListener('wheel', onWheel, { passive: false });
-  listenersAttached = true;
-}
+/** Blokuje scroll strony (mobile + desktop). Ref-count — bezpieczne przy wielu overlayach. */
+export function lockPageScroll(): () => void {
+  lockCount += 1;
+  if (lockCount > 1) {
+    return () => {
+      lockCount -= 1;
+    };
+  }
 
-function detachScrollBlockListeners() {
-  if (!listenersAttached) return;
-  document.removeEventListener('touchmove', onTouchMove);
-  document.removeEventListener('wheel', onWheel);
-  listenersAttached = false;
-}
-
-function applyPageScrollLock() {
   const scrollY = window.scrollY;
   const scrollbarWidth = getScrollbarWidth();
 
@@ -89,71 +82,31 @@ function applyPageScrollLock() {
     document.body.style.paddingRight = `${scrollbarWidth}px`;
   }
 
-  attachScrollBlockListeners();
-}
-
-function restoreStyleProperty(el: HTMLElement, prop: string, value: string) {
-  if (value) {
-    el.style.setProperty(prop, value);
-  } else {
-    el.style.removeProperty(prop);
-  }
-}
-
-function releasePageScrollLock() {
-  detachScrollBlockListeners();
-
-  const saved = snapshot;
-  snapshot = null;
-
-  if (!saved) {
-    document.documentElement.style.removeProperty('overflow');
-    document.documentElement.style.removeProperty('overflow-x');
-    document.body.style.removeProperty('position');
-    document.body.style.removeProperty('top');
-    document.body.style.removeProperty('left');
-    document.body.style.removeProperty('right');
-    document.body.style.removeProperty('width');
-    document.body.style.removeProperty('overflow');
-    document.body.style.removeProperty('overflow-x');
-    document.body.style.removeProperty('padding-right');
-    return;
-  }
-
-  restoreStyleProperty(document.documentElement, 'overflow', saved.html.overflow);
-  restoreStyleProperty(document.documentElement, 'overflow-x', saved.html.overflowX);
-
-  restoreStyleProperty(document.body, 'position', saved.body.position);
-  restoreStyleProperty(document.body, 'top', saved.body.top);
-  restoreStyleProperty(document.body, 'left', saved.body.left);
-  restoreStyleProperty(document.body, 'right', saved.body.right);
-  restoreStyleProperty(document.body, 'width', saved.body.width);
-  restoreStyleProperty(document.body, 'overflow', saved.body.overflow);
-  restoreStyleProperty(document.body, 'overflow-x', saved.body.overflowX);
-  restoreStyleProperty(document.body, 'padding-right', saved.body.paddingRight);
-
-  window.scrollTo(0, saved.scrollY);
-}
-
-export function lockPageScroll(): () => void {
-  const token = Symbol('scroll-lock');
-  activeLocks.add(token);
-
-  if (activeLocks.size === 1) {
-    applyPageScrollLock();
-  }
+  document.addEventListener('touchmove', onTouchMove, { passive: false });
+  document.addEventListener('wheel', onWheel, { passive: false });
 
   return () => {
-    if (!activeLocks.delete(token)) return;
-    if (activeLocks.size === 0) {
-      releasePageScrollLock();
-    }
-  };
-}
+    lockCount -= 1;
+    if (lockCount > 0 || !snapshot) return;
 
-export function blurActiveElement() {
-  const active = document.activeElement;
-  if (active instanceof HTMLElement) {
-    active.blur();
-  }
+    const saved = snapshot;
+    snapshot = null;
+
+    document.documentElement.style.overflow = saved.html.overflow;
+    document.documentElement.style.overflowX = saved.html.overflowX;
+
+    document.body.style.position = saved.body.position;
+    document.body.style.top = saved.body.top;
+    document.body.style.left = saved.body.left;
+    document.body.style.right = saved.body.right;
+    document.body.style.width = saved.body.width;
+    document.body.style.overflow = saved.body.overflow;
+    document.body.style.overflowX = saved.body.overflowX;
+    document.body.style.paddingRight = saved.body.paddingRight;
+
+    document.removeEventListener('touchmove', onTouchMove);
+    document.removeEventListener('wheel', onWheel);
+
+    window.scrollTo(0, saved.scrollY);
+  };
 }

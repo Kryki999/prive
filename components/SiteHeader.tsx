@@ -164,11 +164,10 @@ export default function SiteHeader() {
     };
   }, []);
 
-  /* Scroll lock tylko dla menu i szuflady — formularz konsultacji blokuje scroll we własnym komponencie. */
   useEffect(() => {
-    if (!menuOpen && !newsfeedOpen) return;
+    if (!overlayOpen) return;
     return lockPageScroll();
-  }, [menuOpen, newsfeedOpen]);
+  }, [overlayOpen]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
