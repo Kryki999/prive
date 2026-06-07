@@ -16,7 +16,7 @@ export default function LocationMapSection() {
       className="section-deferred--tall w-screen max-w-none bg-prive-white"
       style={{ marginInline: 'calc(50% - 50vw)' }}
     >
-      <header className="border-t border-prive-border px-4 pb-8 pt-10 text-center sm:pb-10 sm:pt-12 md:pb-12 md:pt-14">
+      <header className="border-t border-prive-border px-4 pb-6 pt-6 text-center sm:pb-8 sm:pt-8 md:pb-10 md:pt-10">
         <h2
           id="location-map-heading"
           className="text-prive-gradient text-2xl font-extrabold uppercase tracking-[0.14em] sm:text-3xl md:text-4xl"

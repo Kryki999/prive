@@ -76,10 +76,20 @@ export default function PhotoUpload({
         )}
       >
         <Camera className="size-6 text-prive-rose" aria-hidden />
-        <p className="text-sm font-medium text-prive-text/90">
+        <p
+          className={cn(
+            'text-sm font-medium',
+            variant === 'drawer' ? 'text-white/90' : 'text-prive-text/90',
+          )}
+        >
           Kliknij lub przeciągnij zdjęcie
         </p>
-        <p className="text-xs text-prive-text-muted">
+        <p
+          className={cn(
+            'text-xs',
+            variant === 'drawer' ? 'text-white/55' : 'text-prive-text-muted',
+          )}
+        >
           Przód, tył, boki głowy/twarzy — maks. {MAX_PHOTOS} pliki
         </p>
       </div>
@@ -123,7 +133,12 @@ export default function PhotoUpload({
                 </button>
               </>
             ) : (
-              <div className="flex size-full items-center justify-center text-prive-text-muted/50">
+              <div
+                className={cn(
+                  'flex size-full items-center justify-center',
+                  variant === 'drawer' ? 'text-white/25' : 'text-prive-text-muted/50',
+                )}
+              >
                 <Camera className="size-5" aria-hidden />
               </div>
             )}

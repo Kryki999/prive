@@ -3,6 +3,8 @@ export const CLINIC_PHONE_LABEL = 'Konsultacje przed zabiegiem';
 
 export const CLINIC_PHONE_HREF = `tel:${CLINIC_PHONE.replace(/\s/g, '')}`;
 
+export const CLINIC_WHATSAPP_HREF = 'https://wa.me/+48511671630';
+
 export const CLINIC_RECEPTION_PHONE = '+48 792 007 307';
 export const CLINIC_RECEPTION_PHONE_LABEL = 'Recepcja — umawianie wizyt';
 

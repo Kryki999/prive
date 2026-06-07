@@ -16,6 +16,7 @@ import {
   TREATMENT_OPTIONS,
   type TreatmentId,
 } from './form-data';
+import { CLINIC_PHONE, CLINIC_PHONE_HREF, CLINIC_WHATSAPP_HREF } from '@/lib/clinic';
 import { PRIVE_EASE } from '@/lib/nav/motion';
 
 export type ConsultationStep = 1 | 2 | 3 | 'success';
@@ -208,6 +209,16 @@ export default function ConsultationFormBody({
 
   const showTextarea = treatment !== '' && TEXTAREA_TREATMENTS.includes(treatment as TreatmentId);
 
+  const selectTreatmentAndAdvance = (optionId: TreatmentId) => {
+    setTreatment(optionId);
+    setDirection(1);
+    setStep(2);
+  };
+
+  const contactLinkClass = isDrawer
+    ? 'text-prive-rose underline-offset-2 transition hover:text-white hover:underline'
+    : 'text-prive-rose underline-offset-2 transition hover:text-prive-plum hover:underline';
+
   return (
     <div
       ref={formContainerRef}
@@ -260,11 +271,11 @@ export default function ConsultationFormBody({
               )}
             >
               Wrócimy z pierwszym kontaktem na podany numer.
-              {mode === 'drawer'
+              {onSuccessClose
                 ? ' Jeśli chcesz, możesz już zamknąć ten panel.'
                 : ' Jeśli chcesz, możesz od razu wysłać kolejne zgłoszenie.'}
             </p>
-            {mode === 'drawer' ? (
+            {onSuccessClose ? (
               <button
                 ref={closeSuccessRef}
                 type="button"
@@ -296,20 +307,49 @@ export default function ConsultationFormBody({
           >
             <header className="space-y-2">
               {step === 1 ? (
-                <p
+                <div
                   className={cn(
-                    'mb-4 text-pretty text-[0.95rem] leading-relaxed md:text-base',
+                    'mb-4 space-y-2 text-pretty text-[0.95rem] leading-relaxed md:text-base',
                     isDrawer ? 'text-white/80' : 'text-prive-text-muted',
                   )}
                 >
-                  Wolisz napisać od razu?{' '}
-                  <a
-                    href={`mailto:${quickContactEmail}`}
-                    className="text-prive-rose transition hover:text-prive-plum"
-                  >
-                    {quickContactEmail}
-                  </a>
-                </p>
+                  <p>Skontaktuj się z nami od razu:</p>
+                  <ul className="flex flex-wrap gap-x-1 gap-y-1 text-sm md:text-[0.9375rem]">
+                    <li>
+                      <a href={`mailto:${quickContactEmail}`} className={contactLinkClass}>
+                        {quickContactEmail}
+                      </a>
+                    </li>
+                    <li
+                      aria-hidden
+                      className={isDrawer ? 'text-white/35' : 'text-prive-text-muted/50'}
+                    >
+                      ·
+                    </li>
+                    <li>
+                      <a href={CLINIC_PHONE_HREF} className={contactLinkClass}>
+                        {CLINIC_PHONE}
+                      </a>
+                    </li>
+                    <li
+                      aria-hidden
+                      className={isDrawer ? 'text-white/35' : 'text-prive-text-muted/50'}
+                    >
+                      ·
+                    </li>
+                    <li>
+                      <a
+                        href={CLINIC_WHATSAPP_HREF}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={contactLinkClass}
+                      >
+                        WhatsApp
+                      </a>
+                    </li>
+                  </ul>
+                  <p>Lub wypełnij krótki formularz poniżej.</p>
+                </div>
               ) : null}
               <h3
                 id={resolvedTitleId}
@@ -334,7 +374,7 @@ export default function ConsultationFormBody({
                         key={option.id}
                         ref={index === 0 ? firstTileRef : undefined}
                         type="button"
-                        onClick={() => setTreatment(option.id)}
+                        onClick={() => selectTreatmentAndAdvance(option.id)}
                         className={cn(
                           'group flex min-h-[5.5rem] items-center gap-4 rounded-2xl border px-4 py-4 text-left transition-all duration-300',
                           isDrawer
@@ -362,19 +402,6 @@ export default function ConsultationFormBody({
                     );
                   })}
                 </div>
-
-                <button
-                  type="button"
-                  disabled={!treatment}
-                  className={cn(primaryBtnClass, 'w-full sm:w-auto')}
-                  onClick={() => {
-                    if (!treatment) return;
-                    setDirection(1);
-                    setStep(2);
-                  }}
-                >
-                  Dalej
-                </button>
               </div>
             )}
 
