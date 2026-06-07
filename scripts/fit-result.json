@@ -1,0 +1,25 @@
+{
+  "calibration": {
+    "sourceCenterX": 156,
+    "targetCenterX": 1336,
+    "scaleY": 3.71,
+    "translateY": 110,
+    "translateX": -6
+  },
+  "zoneScaleX": {
+    "zone-6": 2.6,
+    "zone-5": 2.6,
+    "zone-4": 2.6,
+    "zone-3": 2.392,
+    "zone-2": 2.34,
+    "zone-1": 2.288
+  },
+  "score": 676320.0155267874,
+  "bounds": {
+    "minY": 106,
+    "maxY": 1599,
+    "minX": 281,
+    "maxX": 2412,
+    "centerX": 1336.3855421686746
+  }
+}

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Edytor stref (parametryczny) — Hair Clinic Privé</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #111;
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    header {
+      padding: 10px 16px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #333;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    header h1 { font-size: 15px; margin: 0 12px 0 0; font-weight: 600; }
+    .btn {
+      background: #751f5e;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn:hover { filter: brightness(1.1); }
+    .btn.secondary { background: #333; }
+    .groups { display: flex; gap: 6px; flex-wrap: wrap; }
+    .group-btn {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      background: #333;
+      color: #fff;
+    }
+    .group-btn.active { border-color: #e5007e; }
+    .workspace { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+    #viewport {
+      flex: 1;
+      overflow: hidden;
+      background: #0a0a0a;
+      position: relative;
+      cursor: default;
+      touch-action: none;
+    }
+    #viewport.panning { cursor: grabbing; }
+    #stage {
+      position: absolute;
+      left: 0;
+      top: 0;
+      transform-origin: 0 0;
+    }
+    .canvas-wrap {
+      position: relative;
+      width: 2656px;
+      height: 1600px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    .canvas-wrap img {
+      display: block;
+      width: 2656px;
+      height: 1600px;
+      pointer-events: none;
+      user-select: none;
+    }
+    aside {
+      width: 300px;
+      flex-shrink: 0;
+      background: #1a1a1a;
+      border-left: 1px solid #333;
+      padding: 16px;
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    aside h2 { font-size: 13px; margin: 16px 0 8px; color: #e5007e; text-transform: uppercase; letter-spacing: 0.05em; }
+    aside h2:first-child { margin-top: 0; }
+    .hint { color: #999; margin: 0 0 8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Edytor stref — uchwyty</h1>
+    <div class="groups" id="groupButtons"></div>
+    <button type="button" class="btn secondary" id="btnZoomFit">Dopasuj</button>
+    <button type="button" class="btn secondary" id="btnZoomIn">+</button>
+    <button type="button" class="btn secondary" id="btnZoomOut">−</button>
+    <label><input type="checkbox" id="chkAll" checked /> Wszystkie strefy</label>
+    <label><input type="checkbox" id="chkMirror" checked /> Lustrzane odbicie</label>
+    <button type="button" class="btn" id="btnExport">Zapisz JSON</button>
+    <label class="btn secondary" style="cursor:pointer">Wczytaj<input type="file" id="fileImport" accept=".json" hidden /></label>
+    <button type="button" class="btn" id="btnReset">Reset</button>
+  </header>
+  <div class="workspace">
+    <div id="viewport">
+      <div id="stage">
+        <div class="canvas-wrap">
+          <img src="/man.webp" alt="Głowa" width="2656" height="1600" draggable="false" />
+          <svg id="svg" width="2656" height="1600" style="position:absolute;inset:0"></svg>
+        </div>
+      </div>
+    </div>
+    <aside>
+      <h2>Jak używać</h2>
+      <p class="hint">Każde kółko leży <strong>na krawędzi</strong> strefy — przeciągasz je wzdłuż konturu głowy. Lewa strona = lustrzane odbicie prawej.</p>
+      <ol class="hint">
+        <li><strong>Strefa 6</strong> — punkty 1–3: owal (góra, dół, szerokość)</li>
+        <li><strong>Strefa 5</strong> — 4–6 góra, 7 róg dół (wys. = pkt 13), 8 wybrzuszenie dołu</li>
+        <li><strong>Strefa 3</strong> — elipsa środka (granica wspólna z 2 i 4)</li>
+        <li><strong>Strefa 4</strong> — skroń, bok, tył (bez punktu w środku)</li>
+        <li><strong>Strefa 2</strong> — skroń, hairline, szczyt łuku, wygięcie boku (16 = punkt sterujący łuku, nie leży na linii)</li>
+        <li>Zapisz JSON → <code>public/zones-parametric.json</code> → <code>npm run import:zones</code></li>
+      </ol>
+      <h2>Nawigacja</h2>
+      <p class="hint">Kółko myszy = zoom · Spacja + drag = przesuwanie</p>
+      <h2>Numery punktów (1–19)</h2>
+      <p class="hint">Każdy punkt ma numer — możesz napisać np. „punkt 4 jest za wysoko”.</p>
+      <p class="hint"><strong>11–12:</strong> węzeł elipsy 3 (11) i skroń (12) — wspólna granica 2/4 po obu stronach.</p>
+      <p class="hint"><strong>14:</strong> tył głowy strefy 4 — lewy + lustrzane 14 po prawej (jak pkt 12).</p>
+      <p class="hint"><strong>5 (strefa 5):</strong> punkt sterujący łuku między 4 a 6 — nie leży na linii, ale kształtuje górę pasma.</p>
+      <h2>Uchwyty aktywnej grupy</h2>
+      <ul id="handleList" class="hint"></ul>
+    </aside>
+  </div>
+  <div id="status" style="padding:6px 16px;background:#1a1a1a;border-top:1px solid #333;font-size:12px;color:#aaa">Ładowanie…</div>
+
+  <script type="module">
+    import {
+      DEFAULT_ZONE_PARAMS,
+      buildZoneMap,
+      getEditorHandles,
+      applyHandleDrag,
+      normalizeParams,
+    } from '/js/zone-geometry.js';
+
+    const W = 2656, H = 1600;
+    const ZONE_COLORS = {
+      z6: '#ffdc00', z5: '#ff8c00', z4: '#00b478', z3: '#0078ff', z2: '#751f5e', z1: '#e5007e',
+    };
+    const GROUPS = ['z6', 'z5', 'z4', 'z3', 'z2', 'z1'];
+
+    let params = structuredClone(normalizeParams(DEFAULT_ZONE_PARAMS));
+    let activeGroup = 'z3';
+    let zoom = 1, panX = 0, panY = 0;
+    let spaceHeld = false, panning = false, panStart = null;
+    let dragging = null;
+
+    const viewport = document.getElementById('viewport');
+    const stage = document.getElementById('stage');
+    const svg = document.getElementById('svg');
+    const status = document.getElementById('status');
+
+    function applyTransform() {
+      stage.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+    }
+
+    function fitToView() {
+      const vr = viewport.getBoundingClientRect();
+      zoom = Math.min((vr.width - 40) / W, (vr.height - 40) / H, 1);
+      panX = (vr.width - W * zoom) / 2;
+      panY = (vr.height - H * zoom) / 2;
+      applyTransform();
+    }
+
+    function zoomAt(cx, cy, factor) {
+      const vr = viewport.getBoundingClientRect();
+      const mx = cx - vr.left, my = cy - vr.top;
+      const nz = Math.min(8, Math.max(0.08, zoom * factor));
+      panX = mx - (mx - panX) * (nz / zoom);
+      panY = my - (my - panY) * (nz / zoom);
+      zoom = nz;
+      applyTransform();
+    }
+
+    function screenToSvg(clientX, clientY) {
+      const vr = viewport.getBoundingClientRect();
+      return [
+        Math.round((clientX - vr.left - panX) / zoom),
+        Math.round((clientY - vr.top - panY) / zoom),
+      ];
+    }
+
+    function mirrorX(x) {
+      return Math.round(2 * params.centerX - x);
+    }
+
+    function render() {
+      const map = buildZoneMap(params);
+      const showAll = document.getElementById('chkAll').checked;
+      const showMirror = document.getElementById('chkMirror').checked;
+      const strokeW = Math.max(2, 3 / zoom);
+      let html = '';
+
+      const order = ['zone-6', 'zone-5', 'zone-4', 'zone-3', 'zone-2', 'zone-1'];
+      order.forEach((zid) => {
+        const g = zid.replace('zone-', 'z');
+        if (!showAll && g !== activeGroup) return;
+        const zd = map.zones[zid];
+        const stroke = ZONE_COLORS[g];
+        zd.paths.forEach((d) => {
+          const rule = zd.fillRule ? ` fill-rule="${zd.fillRule}"` : '';
+          html += `<path d="${d}" fill="${stroke}33" stroke="none"${rule}/>`;
+        });
+      });
+
+      order.forEach((zid) => {
+        const strokes = map.strokeOverlays[zid];
+        if (!strokes) return;
+        const g = zid.replace('zone-', 'z');
+        if (!showAll && g !== activeGroup && !['z2','z3','z4'].includes(g)) return;
+        strokes.forEach((d) => {
+          html += `<path d="${d}" fill="none" stroke="#751F5E" stroke-width="${strokeW}" vector-effect="non-scaling-stroke" stroke-dasharray="10 8"/>`;
+        });
+      });
+
+      const handles = getEditorHandles(params);
+      const numLabel = (x, y, num, active) =>
+        `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="${active ? 13 : 11}" font-weight="700" style="pointer-events:none;paint-order:stroke;stroke:#000;stroke-width:3px">${num}</text>`;
+
+      handles.forEach((h) => {
+        const visible = h.group === activeGroup || showAll;
+        if (!visible) return;
+        const active = h.group === activeGroup;
+        const r = active ? 10 : 7;
+        html += `<circle data-handle="${h.id}" cx="${h.x}" cy="${h.y}" r="${r}" fill="${ZONE_COLORS[h.group]}" stroke="#fff" stroke-width="2" style="cursor:grab"/>`;
+        html += numLabel(h.x, h.y, h.num, active);
+        if (showMirror && h.mirror) {
+          const mx = mirrorX(h.x);
+          html += `<circle data-handle="${h.id}" data-mirror="1" cx="${mx}" cy="${h.y}" r="${r - 2}" fill="${ZONE_COLORS[h.group]}88" stroke="#fff" stroke-width="1.5" style="cursor:grab"/>`;
+          html += numLabel(mx, h.y, h.num, active);
+        }
+      });
+
+      html += `<line x1="${params.centerX}" y1="80" x2="${params.centerX}" y2="1520" stroke="#ffffff22" stroke-width="2" stroke-dasharray="8 12"/>`;
+
+      svg.innerHTML = html;
+      svg.querySelectorAll('[data-handle]').forEach((el) => {
+        el.addEventListener('mousedown', onHandleDown);
+      });
+
+      const list = document.getElementById('handleList');
+      list.innerHTML = handles
+        .filter((h) => h.group === activeGroup)
+        .map((h) => `<li><strong>#${h.num}</strong> ${h.label} (${h.x}, ${h.y})</li>`)
+        .join('');
+
+      status.textContent = `Grupa: ${activeGroup} | Zoom: ${Math.round(zoom * 100)}% | centerX: ${params.centerX}`;
+    }
+
+    function onHandleDown(e) {
+      e.stopPropagation();
+      if (spaceHeld) return;
+      const id = e.target.getAttribute('data-handle');
+      const isMirror = e.target.hasAttribute('data-mirror');
+      dragging = { id, isMirror };
+      viewport.style.cursor = 'grabbing';
+      e.preventDefault();
+    }
+
+    function buildGroupButtons() {
+      const el = document.getElementById('groupButtons');
+      el.innerHTML = GROUPS.map((g) =>
+        `<button type="button" class="group-btn ${g === activeGroup ? 'active' : ''}" data-g="${g}" style="border-color:${ZONE_COLORS[g]}">${g.replace('z','Strefa ')}</button>`
+      ).join('');
+      el.querySelectorAll('.group-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          activeGroup = btn.dataset.g;
+          buildGroupButtons();
+          render();
+        });
+      });
+    }
+
+    window.addEventListener('mousemove', (e) => {
+      if (panning && panStart) {
+        panX = panStart.panX + (e.clientX - panStart.x);
+        panY = panStart.panY + (e.clientY - panStart.y);
+        applyTransform();
+        return;
+      }
+      if (!dragging) return;
+      let [x, y] = screenToSvg(e.clientX, e.clientY);
+      if (dragging.isMirror) x = mirrorX(x);
+      params = applyHandleDrag(params, dragging.id, x, y);
+      render();
+    });
+
+    window.addEventListener('mouseup', () => {
+      dragging = null;
+      panning = false;
+      panStart = null;
+      viewport.classList.remove('panning');
+      viewport.style.cursor = '';
+    });
+
+    viewport.addEventListener('mousedown', (e) => {
+      if (e.button === 1 || (e.button === 0 && spaceHeld)) {
+        panning = true;
+        panStart = { x: e.clientX, y: e.clientY, panX, panY };
+        viewport.classList.add('panning');
+        e.preventDefault();
+      }
+    });
+
+    viewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.12 : 1 / 1.12);
+    }, { passive: false });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && !e.repeat) { spaceHeld = true; e.preventDefault(); }
+    });
+    document.addEventListener('keyup', (e) => {
+      if (e.code === 'Space') spaceHeld = false;
+    });
+
+    document.getElementById('btnZoomFit').addEventListener('click', fitToView);
+    document.getElementById('btnZoomIn').addEventListener('click', () => {
+      const vr = viewport.getBoundingClientRect();
+      zoomAt(vr.left + vr.width / 2, vr.top + vr.height / 2, 1.25);
+    });
+    document.getElementById('btnZoomOut').addEventListener('click', () => {
+      const vr = viewport.getBoundingClientRect();
+      zoomAt(vr.left + vr.width / 2, vr.top + vr.height / 2, 0.8);
+    });
+    document.getElementById('chkAll').addEventListener('change', render);
+    document.getElementById('chkMirror').addEventListener('change', render);
+
+    document.getElementById('btnExport').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(params, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'zones-parametric.json';
+      a.click();
+    });
+
+    document.getElementById('fileImport').addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      params = normalizeParams({ ...DEFAULT_ZONE_PARAMS, ...JSON.parse(await file.text()) });
+      render();
+      e.target.value = '';
+    });
+
+    document.getElementById('btnReset').addEventListener('click', () => {
+      if (confirm('Przywrócić domyślne parametry?')) {
+        params = structuredClone(normalizeParams(DEFAULT_ZONE_PARAMS));
+        render();
+      }
+    });
+
+    buildGroupButtons();
+    fitToView();
+    render();
+
+    fetch('/zones-parametric.json', { signal: AbortSignal.timeout(8000) })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        if (j) params = normalizeParams({ ...DEFAULT_ZONE_PARAMS, ...j });
+        render();
+      })
+      .catch(() => {
+        status.textContent += ' (domyślne parametry — JSON nie wczytany)';
+      });
+
+    window.addEventListener('resize', fitToView);
+  </script>
+</body>
+</html>

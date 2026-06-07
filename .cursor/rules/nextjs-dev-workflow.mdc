@@ -1,0 +1,30 @@
+---
+description: Next.js dev workflow — nie uruchamiaj build obok dev (psuje .next / CSS)
+alwaysApply: true
+---
+
+# Next.js — dev vs build
+
+## Nigdy nie rób tego podczas pracy
+
+- **NIE** uruchamiaj `npm run build` ani `next build` do „sprawdzenia” zmian, gdy użytkownik może mieć włączone `npm run dev`.
+- **NIE** uruchamiaj drugiego `npm run dev` w nowym terminalu.
+- **NIE** dodawaj czyszczenia `.next` do zwykłego `dev` — tylko `dev:clean` / `dev:reset`.
+
+Równoległy **build + dev** zapisuje do tego samego folderu `.next` → webpack chunki się rozjeżdżają → **404 na `layout.css`, `page.js`** → strona wygląda jak goły HTML.
+
+## Jak weryfikować zmiany (agent)
+
+1. Po edycji kodu: **`read_lints`** na zmienione pliki — wystarczy w 99% przypadków.
+2. TypeScript: tylko jeśli użytkownik prosi — wtedy **najpierw upewnij się, że dev nie działa**, potem `npm run build`.
+3. Jeśli użytkownik zgłasza brak CSS/JS: `npm run dev:reset` (zabija porty 3000/3001, czyści `.next`, startuje dev).
+
+## Skrypty projektu
+
+| Skrypt | Kiedy |
+|--------|--------|
+| `npm run dev` | Codzienna praca (Turbopack) |
+| `npm run dev:reset` | Naprawa zepsutego cache / 404 na assety |
+| `npm run dev:clean` | Dev po ręcznym czyszczeniu `.next` |
+| `npm run build` | Produkcja — **tylko gdy dev jest zatrzymany** (skrypt sam blokuje, jeśli port 3000/3001 zajęty) |
+| `npm run build:force` | Build mimo ostrzeżenia — tylko gdy użytkownik wyraźnie chce |

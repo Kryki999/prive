@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tracer stref (legacy) — Hair Clinic Privé</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #111;
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    header {
+      padding: 10px 16px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #333;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    header h1 { font-size: 15px; margin: 0 12px 0 0; font-weight: 600; }
+    .btn {
+      background: #751f5e;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn:hover { filter: brightness(1.1); }
+    .btn.secondary { background: #333; }
+    .btn.danger { background: #8b2040; }
+    .zones { display: flex; gap: 6px; flex-wrap: wrap; }
+    .zone-btn {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .zone-btn.active { border-color: #fff; box-shadow: 0 0 0 1px #fff; }
+    .zoom-group { display: flex; gap: 4px; align-items: center; }
+    .zoom-label { font-size: 12px; min-width: 48px; text-align: center; color: #aaa; }
+    .workspace { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+    #viewport {
+      flex: 1;
+      overflow: hidden;
+      background: #0a0a0a;
+      position: relative;
+      cursor: crosshair;
+      touch-action: none;
+    }
+    #viewport.panning { cursor: grabbing; }
+    #viewport.space-pan { cursor: grab; }
+    #stage {
+      position: absolute;
+      left: 0;
+      top: 0;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+    .canvas-wrap {
+      position: relative;
+      width: 2656px;
+      height: 1600px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    .canvas-wrap img {
+      display: block;
+      width: 2656px;
+      height: 1600px;
+      user-select: none;
+      pointer-events: none;
+    }
+    svg.overlay {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2656px;
+      height: 1600px;
+    }
+    aside {
+      width: 280px;
+      min-width: 240px;
+      background: #1a1a1a;
+      border-left: 1px solid #333;
+      padding: 14px;
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    aside h2 { font-size: 14px; margin: 0 0 8px; color: #e5007e; }
+    aside ol { margin: 0; padding-left: 18px; }
+    aside li { margin-bottom: 8px; }
+    .status {
+      padding: 8px 16px;
+      background: #222;
+      font-size: 12px;
+      border-top: 1px solid #333;
+      flex-shrink: 0;
+    }
+    .hint { color: #aaa; font-size: 12px; }
+    input[type="file"] { font-size: 12px; max-width: 180px; }
+    @media (max-width: 900px) {
+      aside { width: 100%; max-height: 160px; border-left: none; border-top: 1px solid #333; }
+      .workspace { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Tracer (legacy)</h1>
+    <a href="/zone-editor.html" class="btn" style="text-decoration:none">→ Nowy edytor parametryczny</a>
+    <div class="zones" id="zoneButtons"></div>
+    <div class="zoom-group">
+      <button type="button" class="btn secondary" id="btnZoomOut">−</button>
+      <span class="zoom-label" id="zoomLabel">100%</span>
+      <button type="button" class="btn secondary" id="btnZoomIn">+</button>
+      <button type="button" class="btn secondary" id="btnZoomFit">Dopasuj</button>
+    </div>
+    <button class="btn secondary" id="btnUndo" title="Ctrl+Z">Cofnij</button>
+    <button class="btn secondary" id="btnClosePath">Zamknij</button>
+    <button class="btn secondary" id="btnNewPath">Nowa ścieżka</button>
+    <button class="btn danger" id="btnClearZone">Wyczyść</button>
+    <label><input type="checkbox" id="chkSmooth" checked /> Wygładzenie (podgląd)</label>
+    <label><input type="checkbox" id="chkRaw" /> Pokaż surowe linie</label>
+    <label><input type="checkbox" id="chkEdge" checked /> Krawędź głowy</label>
+    <label><input type="checkbox" id="chkOthers" checked /> Inne strefy</label>
+    <button class="btn" id="btnExport">Pobierz JSON</button>
+    <label class="btn secondary" style="display:inline-flex;align-items:center;gap:6px;">
+      Wczytaj <input type="file" id="fileImport" accept=".json" />
+    </label>
+  </header>
+  <div class="workspace">
+    <div id="viewport">
+      <div id="stage">
+        <div class="canvas-wrap" id="wrap">
+          <img src="/man.webp" alt="man" width="2656" height="1600" id="img" />
+          <svg class="overlay" id="svg" viewBox="0 0 2656 1600"></svg>
+        </div>
+      </div>
+    </div>
+    <aside>
+      <h2>Podgląd wygładzenia</h2>
+      <p class="hint">Kolorowa <strong>gładka</strong> linia = podgląd importu. Strefy 3 i 6 → idealna elipsa. Reszta → gładkie łuki. Kropki = kliknięcia.</p>
+      <p class="hint">Od 4 punktów (przed zamknięciem) widać podgląd łuku — pomaga ocenić kształt.</p>
+      <h2>Nawigacja</h2>
+      <ol>
+        <li><strong>Kółko myszy</strong> = zoom na głowie</li>
+        <li><strong>Spacja + drag</strong> = przesuwanie</li>
+      </ol>
+      <h2>Rysowanie</h2>
+      <ol>
+        <li>Kolejność: <strong>6 → 5 → 4 → 3 → 2 → 1</strong></li>
+        <li>Klik = punkt, zamknij przy starcie lub „Zamknij”</li>
+        <li>JSON zapisuje <strong>surowe punkty</strong> — wygładzenie robi import (ten sam algorytm co podgląd)</li>
+      </ol>
+    </aside>
+  </div>
+  <div class="status" id="status">Ładowanie…</div>
+
+  <script type="module">
+    import { smoothTracedPath } from '/js/path-smooth.js';
+
+    const W = 2656, H = 1600;
+    const ZONE_COLORS = {
+      'zone-1': '#e5007e', 'zone-2': '#751f5e', 'zone-3': '#0078ff',
+      'zone-4': '#00b478', 'zone-5': '#ff8c00', 'zone-6': '#ffdc00',
+    };
+    const ZONE_ORDER = ['zone-6','zone-5','zone-4','zone-3','zone-2','zone-1'];
+
+    let activeZone = 'zone-6';
+    let data = {};
+    ZONE_ORDER.forEach(z => { data[z] = { paths: [{ points: [], closed: false }] }; });
+    data['zone-5'].fillRule = 'evenodd';
+
+    let edgeProfile = null;
+    let zoom = 1;
+    let panX = 0;
+    let panY = 0;
+    let spaceHeld = false;
+    let panning = false;
+    let panStart = { x: 0, y: 0, panX: 0, panY: 0 };
+    let suppressClick = false;
+
+    const viewport = document.getElementById('viewport');
+    const stage = document.getElementById('stage');
+    const svg = document.getElementById('svg');
+    const status = document.getElementById('status');
+    const zoomLabel = document.getElementById('zoomLabel');
+
+    function currentPath() {
+      return data[activeZone].paths[data[activeZone].paths.length - 1];
+    }
+
+    function applyTransform() {
+      stage.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+      zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
+    }
+
+    function fitToView() {
+      const vr = viewport.getBoundingClientRect();
+      zoom = Math.min((vr.width - 40) / W, (vr.height - 40) / H, 1);
+      panX = (vr.width - W * zoom) / 2;
+      panY = (vr.height - H * zoom) / 2;
+      applyTransform();
+    }
+
+    function zoomAt(clientX, clientY, factor) {
+      const vr = viewport.getBoundingClientRect();
+      const mx = clientX - vr.left;
+      const my = clientY - vr.top;
+      const newZoom = Math.min(8, Math.max(0.08, zoom * factor));
+      panX = mx - (mx - panX) * (newZoom / zoom);
+      panY = my - (my - panY) * (newZoom / zoom);
+      zoom = newZoom;
+      applyTransform();
+    }
+
+    function screenToSvg(clientX, clientY) {
+      const vr = viewport.getBoundingClientRect();
+      const x = (clientX - vr.left - panX) / zoom;
+      const y = (clientY - vr.top - panY) / zoom;
+      return [Math.round(x), Math.round(y)];
+    }
+
+    function pointsToD(points, closed) {
+      if (!points.length) return '';
+      let d = `M ${points[0][0]} ${points[0][1]}`;
+      for (let i = 1; i < points.length; i++) d += ` L ${points[i][0]} ${points[i][1]}`;
+      if (closed && points.length > 2) d += ' Z';
+      return d;
+    }
+
+    function pathDisplayD(zoneId, path) {
+      const smoothOn = document.getElementById('chkSmooth').checked;
+      const canSmooth = path.points.length >= 4;
+      const useSmooth = smoothOn && canSmooth && (path.closed || path.points.length >= 4);
+
+      if (useSmooth) {
+        return smoothTracedPath(path, {
+          zoneId,
+          previewClosed: !path.closed && path.points.length >= 4,
+        });
+      }
+      return pointsToD(path.points, path.closed);
+    }
+
+    function render() {
+      let html = '';
+      if (document.getElementById('chkEdge').checked && edgeProfile) {
+        edgeProfile.forEach((p, i) => {
+          if (i % 6) return;
+          html += `<circle cx="${p.lx}" cy="${p.y}" r="4" fill="#00ff88"/>`;
+          html += `<circle cx="${p.rx}" cy="${p.y}" r="4" fill="#00ff88"/>`;
+        });
+      }
+
+      const showOthers = document.getElementById('chkOthers').checked;
+      const showRaw = document.getElementById('chkRaw').checked;
+      const smoothOn = document.getElementById('chkSmooth').checked;
+      const strokeW = Math.max(2, 3 / zoom);
+
+      ZONE_ORDER.forEach(z => {
+        if (!showOthers && z !== activeZone) return;
+        const zd = data[z];
+        const stroke = ZONE_COLORS[z];
+
+        zd.paths.forEach((path, pi) => {
+          if (!path.points.length) return;
+          const isActive = z === activeZone && pi === zd.paths.length - 1;
+          const rule = zd.fillRule && pi === 0 ? ` fill-rule="${zd.fillRule}"` : '';
+          const smoothD = pathDisplayD(z, path);
+          const rawD = pointsToD(path.points, path.closed);
+          const showSmoothFill = smoothOn && path.points.length >= 4;
+          const isPreview = !path.closed && path.points.length >= 4;
+
+          if (showRaw) {
+            html += `<path d="${rawD}" fill="none" stroke="#888" stroke-width="${strokeW * 0.8}" stroke-dasharray="6 5" opacity="0.7"/>`;
+          }
+
+          if (showSmoothFill) {
+            html += `<path d="${smoothD}" fill="${stroke}${isPreview ? '22' : '33'}" stroke="${stroke}" stroke-width="${isActive ? strokeW * 1.5 : strokeW}" vector-effect="non-scaling-stroke" stroke-dasharray="${isPreview ? '10 8' : ''}"${rule}/>`;
+          } else {
+            html += `<path d="${rawD}" fill="${stroke}33" stroke="${stroke}" stroke-width="${isActive ? strokeW * 1.5 : strokeW}" vector-effect="non-scaling-stroke" stroke-dasharray="${path.closed ? '' : '8 6'}"${rule}/>`;
+          }
+
+          path.points.forEach((pt, i) => {
+            html += `<circle cx="${pt[0]}" cy="${pt[1]}" r="${i === 0 ? 7 : 5}" fill="${i === 0 ? '#fff' : stroke}" stroke="#111" stroke-width="1.5" opacity="0.9"/>`;
+          });
+        });
+      });
+
+      svg.innerHTML = html;
+      const cp = currentPath();
+      const preview = smoothOn && cp.points.length >= 4 && !cp.closed ? ' | podgląd łuku' : '';
+      status.textContent = `Strefa: ${activeZone} | Punkty: ${cp.points.length}${cp.closed ? ' (zamknięta)' : ''}${preview} | Zoom: ${Math.round(zoom * 100)}%`;
+    }
+
+    function buildZoneButtons() {
+      const el = document.getElementById('zoneButtons');
+      el.innerHTML = ZONE_ORDER.map(z =>
+        `<button type="button" class="zone-btn ${z === activeZone ? 'active' : ''}" data-zone="${z}" style="background:${ZONE_COLORS[z]}88;color:#fff">${z}</button>`
+      ).join('');
+      el.querySelectorAll('.zone-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          activeZone = btn.dataset.zone;
+          buildZoneButtons();
+          render();
+        });
+      });
+    }
+
+    viewport.addEventListener('wheel', e => {
+      e.preventDefault();
+      zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.12 : 1 / 1.12);
+    }, { passive: false });
+
+    viewport.addEventListener('mousedown', e => {
+      if (e.button === 1 || (e.button === 0 && spaceHeld)) {
+        panning = true;
+        suppressClick = true;
+        panStart = { x: e.clientX, y: e.clientY, panX, panY };
+        viewport.classList.add('panning');
+        e.preventDefault();
+      }
+    });
+
+    window.addEventListener('mousemove', e => {
+      if (!panning) return;
+      panX = panStart.panX + (e.clientX - panStart.x);
+      panY = panStart.panY + (e.clientY - panStart.y);
+      applyTransform();
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (panning) {
+        panning = false;
+        viewport.classList.remove('panning');
+        setTimeout(() => { suppressClick = false; }, 0);
+      }
+    });
+
+    viewport.addEventListener('click', e => {
+      if (suppressClick || spaceHeld) return;
+      const cp = currentPath();
+      if (cp.closed) return;
+      const [x, y] = screenToSvg(e.clientX, e.clientY);
+      if (x < 0 || y < 0 || x > W || y > H) return;
+      if (cp.points.length >= 3) {
+        const [x0, y0] = cp.points[0];
+        if (Math.hypot(x - x0, y - y0) < 50 / zoom) {
+          cp.closed = true;
+          render();
+          return;
+        }
+      }
+      cp.points.push([x, y]);
+      render();
+    });
+
+    viewport.addEventListener('contextmenu', e => e.preventDefault());
+
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space' && !e.repeat) {
+        spaceHeld = true;
+        viewport.classList.add('space-pan');
+        e.preventDefault();
+      }
+      if (e.ctrlKey && e.key === 'z') {
+        e.preventDefault();
+        document.getElementById('btnUndo').click();
+      }
+    });
+    document.addEventListener('keyup', e => {
+      if (e.code === 'Space') {
+        spaceHeld = false;
+        viewport.classList.remove('space-pan');
+      }
+    });
+
+    document.getElementById('btnZoomIn').addEventListener('click', () => {
+      const vr = viewport.getBoundingClientRect();
+      zoomAt(vr.left + vr.width / 2, vr.top + vr.height / 2, 1.25);
+    });
+    document.getElementById('btnZoomOut').addEventListener('click', () => {
+      const vr = viewport.getBoundingClientRect();
+      zoomAt(vr.left + vr.width / 2, vr.top + vr.height / 2, 0.8);
+    });
+    document.getElementById('btnZoomFit').addEventListener('click', fitToView);
+    document.getElementById('btnUndo').addEventListener('click', () => {
+      const cp = currentPath();
+      if (cp.points.length) cp.points.pop();
+      else if (cp.closed) cp.closed = false;
+      render();
+    });
+    document.getElementById('btnClosePath').addEventListener('click', () => {
+      const cp = currentPath();
+      if (cp.points.length >= 3) cp.closed = true;
+      render();
+    });
+    document.getElementById('btnNewPath').addEventListener('click', () => {
+      const cp = currentPath();
+      if (!cp.closed && cp.points.length) { alert('Najpierw zamknij ścieżkę.'); return; }
+      data[activeZone].paths.push({ points: [], closed: false });
+      render();
+    });
+    document.getElementById('btnClearZone').addEventListener('click', () => {
+      if (!confirm(`Wyczyścić ${activeZone}?`)) return;
+      data[activeZone] = { paths: [{ points: [], closed: false }] };
+      if (activeZone === 'zone-5') data[activeZone].fillRule = 'evenodd';
+      render();
+    });
+
+    ['chkSmooth', 'chkRaw', 'chkEdge', 'chkOthers'].forEach(id => {
+      document.getElementById(id).addEventListener('change', render);
+    });
+
+    document.getElementById('btnExport').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify({ version: 1, viewBox: [0,0,W,H], image: '/man.webp', zones: data }, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'zones-traced.json';
+      a.click();
+    });
+    document.getElementById('fileImport').addEventListener('change', async e => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const json = JSON.parse(await file.text());
+      if (json.zones) data = json.zones;
+      render();
+      e.target.value = '';
+    });
+
+    window.addEventListener('resize', fitToView);
+
+    fetch('/scalp-profile.generated.json')
+      .then(r => r.ok ? r.json() : null)
+      .then(j => { if (j?.profile) edgeProfile = j.profile; render(); })
+      .catch(() => {});
+
+    buildZoneButtons();
+    fitToView();
+    render();
+  </script>
+</body>
+</html>
