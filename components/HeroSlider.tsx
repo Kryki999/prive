@@ -31,7 +31,7 @@ interface Slide {
 const SLIDE_DURATION_MS = 8000;
 
 const ctaPillSizeClass =
-  'shrink-0 whitespace-nowrap text-[0.65rem] px-3.5 py-2.5 tracking-wide gap-1.5 sm:text-xs sm:px-5 sm:py-3 sm:tracking-wider sm:gap-2 md:text-sm md:px-6 md:py-3.5';
+  'shrink-0 whitespace-nowrap text-xs px-5 py-3 tracking-wider gap-2 md:text-sm md:px-6 md:py-3.5';
 
 const ctaOutlineClass = cn(
   'btn-pill-outline btn-pill-outline--light',
@@ -88,13 +88,13 @@ function SlideContent({ slide }: { slide: Slide }) {
         </hgroup>
       </div>
 
-      <div className="flex w-full min-w-0 flex-nowrap items-center gap-2 sm:gap-3 md:gap-4">
+      <div className="flex w-full min-w-0 flex-col items-start gap-2.5 md:flex-row md:flex-nowrap md:items-center md:gap-4">
         <button type="button" onClick={openConsultation} className={ctaPrivePillClass}>
-          <Mail className="size-3.5 shrink-0 sm:size-4" aria-hidden />
+          <Mail className="size-4 shrink-0" aria-hidden />
           Umów Konsultacje
         </button>
         <a href={slide.secondaryHref} className={ctaOutlineClass}>
-          <Info className="size-3.5 shrink-0 sm:size-4" aria-hidden />
+          <Info className="size-4 shrink-0" aria-hidden />
           {slide.secondaryBtnText}
         </a>
       </div>
@@ -314,7 +314,7 @@ export default function HeroSlider() {
   return (
     <section
       id="start"
-      className="relative w-full max-w-[100vw] h-[70vh] md:h-[88vh] bg-prive-dark overflow-hidden"
+      className="relative w-full max-w-[100vw] h-[85vh] md:h-[88vh] bg-prive-dark overflow-hidden"
       style={{ '--hero-slide-duration': `${SLIDE_DURATION_MS}ms` } as React.CSSProperties}
     >
       <div ref={emblaRef} className="h-full overflow-hidden">

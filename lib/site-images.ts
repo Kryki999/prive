@@ -1,6 +1,6 @@
 /**
  * Centralne źródło zdjęć stockowych (Unsplash) dla hero, kart usług i formularza.
- * Desktop hero: szeroki kadr 16:9 · Mobile hero: pionowy kadr pod 70vh.
+ * Desktop hero: szeroki kadr 16:9 · Mobile hero: pionowy kadr pod 85vh.
  */
 
 type UnsplashCrop = 'faces' | 'entropy' | 'edges';
