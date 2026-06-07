@@ -88,10 +88,7 @@ export default function NewsfeedDrawer({
               </button>
             </div>
 
-            <div
-              data-scroll-lock-scrollable
-              className="newsfeed-scrollbar relative z-[1] flex min-w-0 flex-1 overflow-y-auto overscroll-contain bg-prive-white"
-            >
+            <div className="newsfeed-scrollbar relative z-[1] flex min-w-0 flex-1 overflow-y-auto overscroll-contain bg-prive-white">
               <motion.div
                 className="flex w-full flex-col gap-10 px-5 py-7 pb-14 md:gap-11 md:px-7 md:py-8 md:pb-16"
                 variants={containerVariants}

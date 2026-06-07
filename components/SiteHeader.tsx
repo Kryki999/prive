@@ -19,7 +19,6 @@ import { useConfigurator } from '@/components/consultation-form/configurator-sha
 import { NAV_LINKS } from '@/lib/nav/nav-links';
 import { PRIVE_EASE, menuCurtainTransition } from '@/lib/nav/motion';
 import { scrollToSection, syncLocationHash } from '@/lib/nav/nav-scroll';
-import { lockPageScroll } from '@/lib/scroll-lock';
 import { cn } from '@/lib/utils';
 
 const MENU_PANEL_ID = 'site-primary-menu';
@@ -114,6 +113,7 @@ export default function SiteHeader() {
   const [hidden, setHidden] = useState(false);
   const lastScrollRef = useRef(0);
   const overlayOpen = menuOpen || newsfeedOpen || consultationOpen;
+  const scrollLockOpen = menuOpen || newsfeedOpen;
 
   useMotionValueEvent(scrollY, 'change', (current) => {
     if (!onHome) {
@@ -165,9 +165,13 @@ export default function SiteHeader() {
   }, []);
 
   useEffect(() => {
-    if (!overlayOpen) return;
-    return lockPageScroll();
-  }, [overlayOpen]);
+    if (!scrollLockOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [scrollLockOpen]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

@@ -117,7 +117,7 @@ export default function ConsultationFormBody({
       isInitialMount.current = false;
       return;
     }
-    const scrollable = formContainerRef.current?.closest('[data-scroll-lock-scrollable]');
+    const scrollable = formContainerRef.current?.closest('.consultation-drawer-scrollbar');
     if (scrollable instanceof HTMLElement) {
       scrollable.scrollTo({ top: 0, behavior: 'smooth' });
       return;
@@ -134,7 +134,7 @@ export default function ConsultationFormBody({
   }, [step, autoFocusSteps, treatment]);
 
   const scrollFieldIntoView = (el: HTMLElement) => {
-    const scrollable = el.closest('[data-scroll-lock-scrollable]');
+    const scrollable = el.closest('.consultation-drawer-scrollbar');
     if (scrollable instanceof HTMLElement) {
       const scrollableRect = scrollable.getBoundingClientRect();
       const elRect = el.getBoundingClientRect();
