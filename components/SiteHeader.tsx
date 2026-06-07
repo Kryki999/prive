@@ -114,6 +114,7 @@ export default function SiteHeader() {
   const [hidden, setHidden] = useState(false);
   const lastScrollRef = useRef(0);
   const overlayOpen = menuOpen || newsfeedOpen || consultationOpen;
+  const scrollLockOpen = menuOpen || newsfeedOpen;
 
   useMotionValueEvent(scrollY, 'change', (current) => {
     if (!onHome) {
@@ -165,9 +166,9 @@ export default function SiteHeader() {
   }, []);
 
   useEffect(() => {
-    if (!overlayOpen) return;
+    if (!scrollLockOpen) return;
     return lockPageScroll();
-  }, [overlayOpen]);
+  }, [scrollLockOpen]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

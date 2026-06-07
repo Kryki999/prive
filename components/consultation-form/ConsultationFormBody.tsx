@@ -28,6 +28,10 @@ type ConsultationFormBodyProps = {
   titleId?: string;
   onSuccessClose?: () => void;
   quickContactEmail?: string;
+  /** Auto-focus pola przy zmianie kroku (tylko panel boczny). */
+  autoFocusSteps?: boolean;
+  /** Przewijanie do formularza przy zmianie kroku (tylko panel boczny). */
+  scrollToStepOnChange?: boolean;
 };
 
 function formIdPrefix(titleId: string | undefined, mode: 'drawer' | 'embedded') {
@@ -59,6 +63,8 @@ export default function ConsultationFormBody({
   titleId,
   onSuccessClose,
   quickContactEmail = QUICK_CONTACT_EMAIL,
+  autoFocusSteps = false,
+  scrollToStepOnChange = false,
 }: ConsultationFormBodyProps) {
   const idPrefix = formIdPrefix(titleId, mode);
   const resolvedTitleId = titleId ?? `${idPrefix}-title`;
@@ -106,22 +112,37 @@ export default function ConsultationFormBody({
   }, [step, onStepChange]);
 
   useEffect(() => {
+    if (!scrollToStepOnChange) return;
     if (isInitialMount.current) {
       isInitialMount.current = false;
       return;
     }
+    const scrollable = formContainerRef.current?.closest('[data-scroll-lock-scrollable]');
+    if (scrollable instanceof HTMLElement) {
+      scrollable.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     formContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [step]);
+  }, [step, scrollToStepOnChange]);
 
   useEffect(() => {
-    if (mode !== 'drawer') return;
+    if (!autoFocusSteps) return;
     if (step === 1) firstTileRef.current?.focus();
     if (step === 2 && treatment !== HAIR_TRANSPLANT_ID) descriptionRef.current?.focus();
     if (step === 3) nameRef.current?.focus();
     if (step === 'success') closeSuccessRef.current?.focus();
-  }, [step, mode, treatment]);
+  }, [step, autoFocusSteps, treatment]);
 
   const scrollFieldIntoView = (el: HTMLElement) => {
+    const scrollable = el.closest('[data-scroll-lock-scrollable]');
+    if (scrollable instanceof HTMLElement) {
+      const scrollableRect = scrollable.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      const offset =
+        elRect.top - scrollableRect.top - scrollableRect.height / 2 + elRect.height / 2;
+      scrollable.scrollBy({ top: offset, behavior: 'smooth' });
+      return;
+    }
     el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   };
 

@@ -18,6 +18,7 @@ type StyleSnapshot = {
 
 let lockCount = 0;
 let snapshot: StyleSnapshot | null = null;
+let listenersAttached = false;
 
 function getScrollbarWidth(): number {
   return window.innerWidth - document.documentElement.clientWidth;
@@ -38,19 +39,22 @@ function onWheel(e: WheelEvent) {
   e.preventDefault();
 }
 
-/** Blokuje scroll strony (mobile + desktop). Ref-count — bezpieczne przy wielu overlayach. */
-export function lockPageScroll(): () => void {
-  lockCount += 1;
-  if (lockCount > 1) {
-    return () => {
-      lockCount -= 1;
-    };
-  }
+function attachListeners() {
+  if (listenersAttached) return;
+  document.addEventListener('touchmove', onTouchMove, { passive: false });
+  document.addEventListener('wheel', onWheel, { passive: false });
+  listenersAttached = true;
+}
 
-  const scrollY = window.scrollY;
-  const scrollbarWidth = getScrollbarWidth();
+function detachListeners() {
+  if (!listenersAttached) return;
+  document.removeEventListener('touchmove', onTouchMove);
+  document.removeEventListener('wheel', onWheel);
+  listenersAttached = false;
+}
 
-  snapshot = {
+function captureSnapshot(scrollY: number): StyleSnapshot {
+  return {
     scrollY,
     body: {
       position: document.body.style.position,
@@ -67,7 +71,9 @@ export function lockPageScroll(): () => void {
       overflowX: document.documentElement.style.overflowX,
     },
   };
+}
 
+function applyLockStyles(scrollY: number, scrollbarWidth: number) {
   document.documentElement.style.overflow = 'hidden';
   document.documentElement.style.overflowX = 'hidden';
 
@@ -81,32 +87,66 @@ export function lockPageScroll(): () => void {
   if (scrollbarWidth > 0) {
     document.body.style.paddingRight = `${scrollbarWidth}px`;
   }
+}
 
-  document.addEventListener('touchmove', onTouchMove, { passive: false });
-  document.addEventListener('wheel', onWheel, { passive: false });
+function restoreLockStyles() {
+  if (!snapshot) {
+    document.documentElement.style.overflow = '';
+    document.documentElement.style.overflowX = '';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.width = '';
+    document.body.style.overflow = '';
+    document.body.style.overflowX = '';
+    document.body.style.paddingRight = '';
+    return;
+  }
+
+  const saved = snapshot;
+  snapshot = null;
+
+  document.documentElement.style.overflow = saved.html.overflow;
+  document.documentElement.style.overflowX = saved.html.overflowX;
+
+  document.body.style.position = saved.body.position;
+  document.body.style.top = saved.body.top;
+  document.body.style.left = saved.body.left;
+  document.body.style.right = saved.body.right;
+  document.body.style.width = saved.body.width;
+  document.body.style.overflow = saved.body.overflow;
+  document.body.style.overflowX = saved.body.overflowX;
+  document.body.style.paddingRight = saved.body.paddingRight;
+
+  window.scrollTo(0, saved.scrollY);
+}
+
+function releaseLock() {
+  detachListeners();
+  restoreLockStyles();
+}
+
+/** Blokuje scroll strony (mobile + desktop). Ref-count — bezpieczne przy wielu overlayach. */
+export function lockPageScroll(): () => void {
+  lockCount += 1;
+  if (lockCount === 1) {
+    const scrollY = window.scrollY;
+    snapshot = captureSnapshot(scrollY);
+    applyLockStyles(scrollY, getScrollbarWidth());
+    attachListeners();
+  }
 
   return () => {
-    lockCount -= 1;
-    if (lockCount > 0 || !snapshot) return;
-
-    const saved = snapshot;
-    snapshot = null;
-
-    document.documentElement.style.overflow = saved.html.overflow;
-    document.documentElement.style.overflowX = saved.html.overflowX;
-
-    document.body.style.position = saved.body.position;
-    document.body.style.top = saved.body.top;
-    document.body.style.left = saved.body.left;
-    document.body.style.right = saved.body.right;
-    document.body.style.width = saved.body.width;
-    document.body.style.overflow = saved.body.overflow;
-    document.body.style.overflowX = saved.body.overflowX;
-    document.body.style.paddingRight = saved.body.paddingRight;
-
-    document.removeEventListener('touchmove', onTouchMove);
-    document.removeEventListener('wheel', onWheel);
-
-    window.scrollTo(0, saved.scrollY);
+    lockCount = Math.max(0, lockCount - 1);
+    if (lockCount === 0) {
+      releaseLock();
+    }
   };
+}
+
+/** Twardy reset — gdy ref-count się rozjedzie (np. po animacji modala). */
+export function forceUnlockPageScroll(): void {
+  lockCount = 0;
+  releaseLock();
 }

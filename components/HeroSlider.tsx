@@ -37,6 +37,7 @@ interface Slide {
 
 const SLIDE_DURATION_MS = 6000;
 const EMBLA_SCROLL_DURATION = 19;
+const HOLD_PAUSE_THRESHOLD_MS = 250;
 
 const ctaPillSizeClass =
   'shrink-0 whitespace-nowrap text-xs px-5 py-3 tracking-wider gap-2 md:text-sm md:px-6 md:py-3.5';
@@ -230,6 +231,10 @@ export default function HeroSlider() {
   const isPlayingRef = useRef(isPlaying);
   const prefersReducedMotionRef = useRef(prefersReducedMotion);
   const isInViewportRef = useRef(isInViewport);
+  const lastSlideRef = useRef(0);
+  const needsInitialProgressSyncRef = useRef(true);
+  const shouldSyncProgressOnTimerSetRef = useRef(false);
+  const pointerDownAtRef = useRef(0);
 
   const autoplayPlugin = useRef(
     Autoplay({
@@ -285,27 +290,62 @@ export default function HeroSlider() {
   useEffect(() => {
     if (!emblaApi) return;
 
-    const syncSlide = () => {
-      setCurrentSlide(emblaApi.selectedScrollSnap());
+    const resetProgress = () => {
+      if (!isPlayingRef.current || prefersReducedMotionRef.current) return;
+      setProgressKey((k) => k + 1);
+    };
+
+    const syncSlide = (resetProgressOnChange: boolean) => {
+      const idx = emblaApi.selectedScrollSnap();
+      setCurrentSlide(idx);
+      if (resetProgressOnChange && idx !== lastSlideRef.current) {
+        lastSlideRef.current = idx;
+        resetProgress();
+      }
+      if (!resetProgressOnChange) {
+        lastSlideRef.current = idx;
+      }
+    };
+
+    const onSelect = () => syncSlide(true);
+    const onReInit = () => syncSlide(false);
+
+    const onPointerDown = () => {
+      pointerDownAtRef.current = Date.now();
+      shouldSyncProgressOnTimerSetRef.current = false;
+    };
+
+    const onPointerUp = () => {
+      if (Date.now() - pointerDownAtRef.current >= HOLD_PAUSE_THRESHOLD_MS) {
+        shouldSyncProgressOnTimerSetRef.current = true;
+      }
     };
 
     const onAutoplayPlay = () => setAutoplayRunning(true);
     const onAutoplayStop = () => setAutoplayRunning(false);
     const onAutoplayTimerSet = () => {
       if (!isPlayingRef.current || prefersReducedMotionRef.current) return;
-      setProgressKey((k) => k + 1);
+      if (needsInitialProgressSyncRef.current || shouldSyncProgressOnTimerSetRef.current) {
+        needsInitialProgressSyncRef.current = false;
+        shouldSyncProgressOnTimerSetRef.current = false;
+        resetProgress();
+      }
     };
 
-    emblaApi.on('select', syncSlide);
-    emblaApi.on('reInit', syncSlide);
+    emblaApi.on('select', onSelect);
+    emblaApi.on('reInit', onReInit);
+    emblaApi.on('pointerDown', onPointerDown);
+    emblaApi.on('pointerUp', onPointerUp);
     emblaApi.on('autoplay:play', onAutoplayPlay);
     emblaApi.on('autoplay:stop', onAutoplayStop);
     emblaApi.on('autoplay:timerset', onAutoplayTimerSet);
-    syncSlide();
+    onReInit();
 
     return () => {
-      emblaApi.off('select', syncSlide);
-      emblaApi.off('reInit', syncSlide);
+      emblaApi.off('select', onSelect);
+      emblaApi.off('reInit', onReInit);
+      emblaApi.off('pointerDown', onPointerDown);
+      emblaApi.off('pointerUp', onPointerUp);
       emblaApi.off('autoplay:play', onAutoplayPlay);
       emblaApi.off('autoplay:stop', onAutoplayStop);
       emblaApi.off('autoplay:timerset', onAutoplayTimerSet);
@@ -330,6 +370,7 @@ export default function HeroSlider() {
       if (prefersReducedMotionRef.current) return next;
       if (next) {
         autoplay?.play();
+        setProgressKey((k) => k + 1);
       } else {
         autoplay?.stop();
       }
