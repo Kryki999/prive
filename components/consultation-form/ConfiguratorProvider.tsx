@@ -12,7 +12,10 @@ export function ConfiguratorProvider({ children }: { children: ReactNode }) {
   const [isOpen, setOpen] = useState(false);
 
   const open = useCallback(() => setOpen(true), []);
-  const close = useCallback(() => setOpen(false), []);
+  const close = useCallback(() => {
+    (document.activeElement as HTMLElement | null)?.blur?.();
+    setOpen(false);
+  }, []);
   const toggle = useCallback(() => setOpen((v) => !v), []);
 
   const value = useMemo<ConfiguratorContextValue>(

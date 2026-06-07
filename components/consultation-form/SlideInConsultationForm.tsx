@@ -1,13 +1,15 @@
 'use client';
 
 import { X } from 'lucide-react';
-import { AnimatePresence, motion } from 'motion/react';
+import { motion } from 'motion/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import ConsultationFormBody, { type ConsultationStep } from './ConsultationFormBody';
 import { CONSULTATION_FORM_IMAGE } from './form-data';
 import { useConfigurator } from './configurator-shared';
 import { drawerSlideTransition } from '@/lib/nav/motion';
+import { forceUnlockPageScroll, isPageScrollLockStuck } from '@/lib/scroll-lock';
+import { cn } from '@/lib/utils';
 
 const PANEL_ID = 'site-slide-in-consultation';
 
@@ -16,10 +18,23 @@ export default function SlideInConsultationForm() {
   const panelRef = useRef<HTMLElement>(null);
   const [wizardStep, setWizardStep] = useState<ConsultationStep | null>(null);
   const [keyboardBottomInset, setKeyboardBottomInset] = useState(0);
+  const [panelMounted, setPanelMounted] = useState(false);
   const panEligible = useRef(false);
 
+  const handleClose = useCallback(() => {
+    close();
+  }, [close]);
+
+  const finishPanelClose = useCallback(() => {
+    setPanelMounted(false);
+    if (isPageScrollLockStuck()) {
+      forceUnlockPageScroll();
+    }
+  }, []);
+
   useEffect(() => {
-    if (!isOpen) setWizardStep(null);
+    if (isOpen) setPanelMounted(true);
+    else setWizardStep(null);
   }, [isOpen]);
 
   useEffect(() => {
@@ -100,41 +115,44 @@ export default function SlideInConsultationForm() {
       const { offset, velocity } = info;
       if (offset.x < 40) return;
       if (Math.abs(velocity.y) > Math.abs(velocity.x) + 120) return;
-      if (offset.x > 64 || velocity.x > 200) close();
+      if (offset.x > 64 || velocity.x > 200) handleClose();
     },
-    [close],
+    [handleClose],
   );
 
-  return (
-    <AnimatePresence>
-      {isOpen ? (
-        <>
-          <motion.div
-            key="consultation-backdrop"
-            role="presentation"
-            aria-hidden
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.35, ease: drawerSlideTransition.ease }}
-            className="fixed inset-0 z-[115] bg-prive-plum/45 backdrop-blur-sm md:backdrop-blur-md"
-            onClick={close}
-          />
-          <motion.aside
-            ref={panelRef}
-            key="consultation-panel"
-            id={PANEL_ID}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="consultation-dialog-title"
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={drawerSlideTransition}
-            onPanStart={onPanStart}
-            onPanEnd={onPanEnd}
-            className="fixed inset-0 z-[120] flex h-[100dvh] min-h-0 touch-pan-y flex-col bg-[var(--prive-modal-surface)] shadow-[-12px_0_56px_rgba(0,0,0,0.45)] md:touch-auto md:flex-row"
-          >
+  return panelMounted ? (
+    <>
+      <motion.div
+        role="presentation"
+        aria-hidden
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isOpen ? 1 : 0 }}
+        transition={{ duration: 0.35, ease: drawerSlideTransition.ease }}
+        className={cn(
+          'fixed inset-0 z-[115] bg-prive-plum/45 backdrop-blur-sm md:backdrop-blur-md',
+          !isOpen && 'pointer-events-none',
+        )}
+        onClick={handleClose}
+      />
+      <motion.aside
+        ref={panelRef}
+        id={PANEL_ID}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="consultation-dialog-title"
+        initial={{ x: '100%' }}
+        animate={{ x: isOpen ? 0 : '100%' }}
+        transition={drawerSlideTransition}
+        onAnimationComplete={() => {
+          if (!isOpen) finishPanelClose();
+        }}
+        onPanStart={onPanStart}
+        onPanEnd={onPanEnd}
+        className={cn(
+          'fixed inset-0 z-[120] flex h-[100dvh] min-h-0 touch-pan-y flex-col bg-[var(--prive-modal-surface)] shadow-[-12px_0_56px_rgba(0,0,0,0.45)] md:touch-auto md:flex-row',
+          !isOpen && 'pointer-events-none',
+        )}
+      >
             <div className="relative hidden min-h-0 w-full flex-none md:flex md:w-1/2 md:flex-col">
               <div className="relative min-h-[38vh] flex-1 bg-prive-plum md:min-h-0">
                 <img
@@ -165,7 +183,7 @@ export default function SlideInConsultationForm() {
                   keyboardBottomInset={keyboardBottomInset}
                   mode="drawer"
                   titleId="consultation-dialog-title"
-                  onSuccessClose={close}
+                  onSuccessClose={handleClose}
                   autoFocusSteps
                   scrollToStepOnChange
                 />
@@ -174,14 +192,12 @@ export default function SlideInConsultationForm() {
                 type="button"
                 aria-label="Zamknij formularz konsultacji"
                 className="absolute right-5 top-5 z-[2] rounded-md p-2 text-white/55 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prive-rose/45 md:right-9 md:top-8"
-                onClick={close}
+                onClick={handleClose}
               >
                 <X className="size-5 shrink-0" strokeWidth={1.5} aria-hidden />
               </button>
             </div>
-          </motion.aside>
-        </>
-      ) : null}
-    </AnimatePresence>
-  );
+      </motion.aside>
+    </>
+  ) : null;
 }

@@ -1,9 +1,16 @@
 let lockCount = 0;
 let savedScrollY = 0;
+let useFixedBody = false;
 let listenersAttached = false;
 
 function getScrollbarWidth(): number {
   return window.innerWidth - document.documentElement.clientWidth;
+}
+
+/** Phones/tablets — position:fixed on body breaks touch scroll restore on iOS Safari. */
+function shouldUseFixedBodyLock(): boolean {
+  if (typeof window === 'undefined') return true;
+  return !window.matchMedia('(pointer: coarse)').matches;
 }
 
 function readScrollY(): number {
@@ -43,17 +50,19 @@ function detachListeners() {
   listenersAttached = false;
 }
 
-function applyLockStyles(scrollY: number, scrollbarWidth: number) {
+function applyLockStyles(scrollY: number, scrollbarWidth: number, fixedBody: boolean) {
   document.documentElement.style.overflow = 'hidden';
   document.documentElement.style.overflowX = 'hidden';
+  document.body.style.overflow = 'hidden';
+  document.body.style.overflowX = 'hidden';
+
+  if (!fixedBody) return;
 
   document.body.style.position = 'fixed';
   document.body.style.top = `-${scrollY}px`;
   document.body.style.left = '0';
   document.body.style.right = '0';
   document.body.style.width = '100%';
-  document.body.style.overflow = 'hidden';
-  document.body.style.overflowX = 'hidden';
   if (scrollbarWidth > 0) {
     document.body.style.paddingRight = `${scrollbarWidth}px`;
   }
@@ -72,21 +81,45 @@ function clearLockStyles() {
   document.body.style.paddingRight = '';
 }
 
+function restoreScrollPosition(scrollY: number) {
+  const apply = () => {
+    window.scrollTo(0, scrollY);
+    document.documentElement.scrollTop = scrollY;
+    document.body.scrollTop = scrollY;
+  };
+  apply();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(apply);
+  });
+}
+
 function releaseLock() {
+  const scrollY = savedScrollY;
+  const hadFixedBody = useFixedBody;
+
   detachListeners();
   clearLockStyles();
-  window.scrollTo(0, savedScrollY);
   savedScrollY = 0;
+  useFixedBody = false;
+
+  if (hadFixedBody) {
+    restoreScrollPosition(scrollY);
+  }
 }
 
 /** Blokuje scroll strony (mobile + desktop). Ref-count — bezpieczne przy wielu overlayach. */
 export function lockPageScroll(): () => void {
   lockCount += 1;
-  if (lockCount === 1) {
-    savedScrollY = readScrollY();
-    applyLockStyles(savedScrollY, getScrollbarWidth());
-    attachListeners();
+  if (lockCount > 1) {
+    return () => {
+      lockCount = Math.max(0, lockCount - 1);
+    };
   }
+
+  savedScrollY = readScrollY();
+  useFixedBody = shouldUseFixedBodyLock();
+  applyLockStyles(savedScrollY, getScrollbarWidth(), useFixedBody);
+  attachListeners();
 
   return () => {
     lockCount = Math.max(0, lockCount - 1);
@@ -102,9 +135,8 @@ export function forceUnlockPageScroll(): void {
   releaseLock();
 }
 
-/** Lock logicznie zwolniony, ale DOM nadal zablokowany (np. pominięty cleanup). */
+/** Lock zwolniony logicznie, ale DOM nadal zablokowany. */
 export function isPageScrollLockStuck(): boolean {
-  if (lockCount > 0) return false;
   return (
     listenersAttached ||
     document.body.style.position === 'fixed' ||
