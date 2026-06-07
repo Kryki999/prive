@@ -8,11 +8,6 @@ import ConsultationFormBody, { type ConsultationStep } from './ConsultationFormB
 import { CONSULTATION_FORM_IMAGE } from './form-data';
 import { useConfigurator } from './configurator-shared';
 import { drawerSlideTransition } from '@/lib/nav/motion';
-import {
-  forceUnlockPageScroll,
-  isPageScrollLockStuck,
-  lockPageScroll,
-} from '@/lib/scroll-lock';
 
 const PANEL_ID = 'site-slide-in-consultation';
 
@@ -25,11 +20,6 @@ export default function SlideInConsultationForm() {
 
   useEffect(() => {
     if (!isOpen) setWizardStep(null);
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    return lockPageScroll();
   }, [isOpen]);
 
   useEffect(() => {
@@ -116,13 +106,7 @@ export default function SlideInConsultationForm() {
   );
 
   return (
-    <AnimatePresence
-      onExitComplete={() => {
-        if (!isOpen && isPageScrollLockStuck()) {
-          forceUnlockPageScroll();
-        }
-      }}
-    >
+    <AnimatePresence>
       {isOpen ? (
         <>
           <motion.div
