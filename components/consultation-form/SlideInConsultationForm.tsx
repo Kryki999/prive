@@ -8,7 +8,11 @@ import ConsultationFormBody, { type ConsultationStep } from './ConsultationFormB
 import { CONSULTATION_FORM_IMAGE } from './form-data';
 import { useConfigurator } from './configurator-shared';
 import { drawerSlideTransition } from '@/lib/nav/motion';
-import { lockPageScroll } from '@/lib/scroll-lock';
+import {
+  forceUnlockPageScroll,
+  isPageScrollLockStuck,
+  lockPageScroll,
+} from '@/lib/scroll-lock';
 
 const PANEL_ID = 'site-slide-in-consultation';
 
@@ -18,7 +22,6 @@ export default function SlideInConsultationForm() {
   const [wizardStep, setWizardStep] = useState<ConsultationStep | null>(null);
   const [keyboardBottomInset, setKeyboardBottomInset] = useState(0);
   const panEligible = useRef(false);
-  const unlockScrollRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (!isOpen) setWizardStep(null);
@@ -26,17 +29,8 @@ export default function SlideInConsultationForm() {
 
   useEffect(() => {
     if (!isOpen) return;
-    if (!unlockScrollRef.current) {
-      unlockScrollRef.current = lockPageScroll();
-    }
+    return lockPageScroll();
   }, [isOpen]);
-
-  useEffect(() => {
-    return () => {
-      unlockScrollRef.current?.();
-      unlockScrollRef.current = null;
-    };
-  }, []);
 
   useEffect(() => {
     const vv = window.visualViewport;
@@ -124,9 +118,8 @@ export default function SlideInConsultationForm() {
   return (
     <AnimatePresence
       onExitComplete={() => {
-        if (!isOpen && unlockScrollRef.current) {
-          unlockScrollRef.current();
-          unlockScrollRef.current = null;
+        if (!isOpen && isPageScrollLockStuck()) {
+          forceUnlockPageScroll();
         }
       }}
     >

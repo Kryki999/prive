@@ -101,3 +101,13 @@ export function forceUnlockPageScroll(): void {
   lockCount = 0;
   releaseLock();
 }
+
+/** Lock logicznie zwolniony, ale DOM nadal zablokowany (np. pominięty cleanup). */
+export function isPageScrollLockStuck(): boolean {
+  if (lockCount > 0) return false;
+  return (
+    listenersAttached ||
+    document.body.style.position === 'fixed' ||
+    document.documentElement.style.overflow === 'hidden'
+  );
+}
