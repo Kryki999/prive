@@ -160,7 +160,7 @@ export default function GameShowcaseSection({
                 <div className="shrink-0 origin-left scale-[0.95] sm:scale-100 md:scale-110 lg:scale-[1.25] md:mr-3 lg:mr-4">
                   <PriveLogo variant="hero" hairRose className="items-start" />
                 </div>
-                <p className="min-w-0 flex-1 text-sm leading-relaxed text-white drop-shadow-md sm:text-base md:text-lg">
+                <p className="min-w-0 flex-1 text-sm font-bold leading-relaxed text-white drop-shadow-md sm:text-base md:text-lg">
                   {description}
                 </p>
               </div>
@@ -177,11 +177,11 @@ export default function GameShowcaseSection({
               </div>
 
               {platforms.length > 0 ? (
-                <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 opacity-75">
+                <div className="grid w-full grid-cols-2 gap-1.5 opacity-75 sm:flex sm:w-auto sm:flex-wrap sm:gap-2 md:gap-3">
                   {platforms.map((platform) => (
                     <span
                       key={platform}
-                      className="rounded bg-white/10 px-2 py-1 text-xs font-black uppercase text-white"
+                      className="rounded bg-white/10 px-1.5 py-0.5 text-center text-[0.625rem] font-black uppercase leading-tight text-white sm:px-2 sm:py-1 sm:text-xs sm:text-left"
                     >
                       {platform}
                     </span>
