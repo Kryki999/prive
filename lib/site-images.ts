@@ -154,4 +154,12 @@ export const PATIENT_STORIES_SHOWCASE_IMAGE = unsplash(PHOTOS.patientStories, {
   h: 1350,
   crop: 'entropy',
 });
+
+/** Lżejsze tło sticky showcase na mobile (85svh). */
+export function showcaseStickyMobile(photo: keyof typeof PHOTOS): string {
+  return unsplash(PHOTOS[photo], { w: 1080, h: 1620, crop: 'entropy' });
+}
+
+export const PATIENT_STORIES_SHOWCASE_IMAGE_MOBILE = showcaseStickyMobile('patientStories');
 export const BEFORE_AFTER_SHOWCASE_IMAGE = showcaseWide('hairTransplant');
+export const BEFORE_AFTER_SHOWCASE_IMAGE_MOBILE = showcaseStickyMobile('hairTransplant');

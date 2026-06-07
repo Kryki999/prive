@@ -11,7 +11,7 @@ interface ScrollLinkedProgressOptions {
 
 export default function useScrollLinkedProgress(
   ref: RefObject<HTMLElement | null>,
-  options: ScrollLinkedProgressOptions = {}
+  options: ScrollLinkedProgressOptions = {},
 ) {
   const { completeAt = 0.5, cssVar = '--newswire-bg-progress' } = options;
 
@@ -21,10 +21,19 @@ export default function useScrollLinkedProgress(
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let ticking = false;
+    let scrollDetached = false;
+
+    const detachScrollListeners = () => {
+      if (scrollDetached) return;
+      scrollDetached = true;
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
 
     const update = () => {
       if (prefersReducedMotion) {
         el.style.setProperty(cssVar, '1');
+        detachScrollListeners();
         return;
       }
 
@@ -35,9 +44,14 @@ export default function useScrollLinkedProgress(
       const progress = clamp(scrolledInto / threshold, 0, 1);
 
       el.style.setProperty(cssVar, String(progress));
+
+      if (progress >= 1 && rect.bottom < 0) {
+        detachScrollListeners();
+      }
     };
 
     const onScroll = () => {
+      if (scrollDetached) return;
       if (!ticking) {
         ticking = true;
         requestAnimationFrame(() => {
@@ -52,8 +66,7 @@ export default function useScrollLinkedProgress(
     window.addEventListener('resize', onScroll, { passive: true });
 
     return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
+      detachScrollListeners();
     };
   }, [ref, completeAt, cssVar]);
 }

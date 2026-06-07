@@ -18,6 +18,8 @@ interface InfiniteMarqueeProps {
   variant?: 'cover' | 'award';
   cardWidthClass?: string;
   aspectClass?: string;
+  /** Pause CSS animation when section is off-screen. */
+  paused?: boolean;
 }
 
 const DEFAULT_COVER_WIDTH = 'w-[130px] shrink-0 sm:w-[150px] md:w-[180px] lg:w-[210px]';
@@ -89,6 +91,7 @@ export default function InfiniteMarquee({
   variant = 'cover',
   cardWidthClass,
   aspectClass,
+  paused = false,
 }: InfiniteMarqueeProps) {
   const isAward = variant === 'award';
 
@@ -97,6 +100,7 @@ export default function InfiniteMarquee({
       className={cn(
         'game-library-marquee w-full overflow-hidden',
         speed === 'fast' ? 'game-library-marquee--fast' : 'game-library-marquee--slow',
+        paused && 'game-library-marquee--paused',
         isAward && 'pointer-events-none',
         className,
       )}

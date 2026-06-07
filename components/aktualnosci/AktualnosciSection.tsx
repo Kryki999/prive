@@ -117,7 +117,7 @@ export default function AktualnosciSection() {
     <section
       id="aktualnosci"
       aria-labelledby="aktualnosci-heading"
-      className="scroll-mt-[calc(var(--site-header-h,5rem)+1rem)] border-t border-prive-border bg-prive-white py-16 text-prive-text md:py-24"
+      className="section-deferred scroll-mt-[calc(var(--site-header-h,5rem)+1rem)] border-t border-prive-border bg-prive-white py-16 text-prive-text md:py-24"
     >
       <header className="mx-auto mb-12 flex w-full max-w-7xl items-center gap-4 px-4 md:mb-16 md:gap-6 md:px-8">
         <Bell

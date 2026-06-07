@@ -1,22 +1,30 @@
 'use client';
 
+import { useRef } from 'react';
+
 import InfiniteMarquee from '@/components/InfiniteMarquee';
+import useInViewport from '@/hooks/useInViewport';
 import { BOTTOM_ROW_AWARDS, TOP_ROW_AWARDS } from '@/lib/awards/items';
 
 export default function CertificatesSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const isInViewport = useInViewport(sectionRef);
+
   return (
     <section
+      ref={sectionRef}
       id="wyróznienia"
       className="relative left-1/2 min-h-[440px] w-screen max-w-[100vw] -translate-x-1/2 scroll-mt-[calc(var(--site-header-h,5rem)+1rem)] overflow-hidden bg-prive-plum md:min-h-[500px]"
       aria-labelledby="certificates-heading"
     >
       <div className="relative z-0 flex w-full flex-col gap-3 py-10 md:gap-4 md:py-12">
-        <InfiniteMarquee items={TOP_ROW_AWARDS} speed="fast" variant="award" />
+        <InfiniteMarquee items={TOP_ROW_AWARDS} speed="fast" variant="award" paused={!isInViewport} />
         <InfiniteMarquee
           items={BOTTOM_ROW_AWARDS}
           speed="slow"
           variant="award"
           trackOffsetClassName="-ml-16 md:-ml-24 lg:-ml-32"
+          paused={!isInViewport}
         />
       </div>
 

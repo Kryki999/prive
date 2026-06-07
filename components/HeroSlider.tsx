@@ -9,6 +9,7 @@ import { useConfigurator } from '@/components/consultation-form/configurator-sha
 import HeroTrustStrip from '@/components/hero/HeroTrustStrip';
 import { HERO_TRUST_AVATARS } from '@/lib/hero/trust-avatars';
 import { HERO_SLIDE_CONFIG, resolveHeroSlideImages } from '@/lib/site-images';
+import useInViewport from '@/hooks/useInViewport';
 import { cn } from '@/lib/utils';
 
 interface SlideTrustStrip {
@@ -197,12 +198,15 @@ function HeroControls({
 }
 
 export default function HeroSlider() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const isInViewport = useInViewport(sectionRef);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [progressKey, setProgressKey] = useState(0);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const isPlayingRef = useRef(isPlaying);
   const prefersReducedMotionRef = useRef(prefersReducedMotion);
+  const isInViewportRef = useRef(isInViewport);
 
   const autoplayPlugin = useRef(
     Autoplay({
@@ -231,6 +235,10 @@ export default function HeroSlider() {
   }, [prefersReducedMotion]);
 
   useEffect(() => {
+    isInViewportRef.current = isInViewport;
+  }, [isInViewport]);
+
+  useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
     const update = () => setPrefersReducedMotion(mq.matches);
     update();
@@ -244,12 +252,12 @@ export default function HeroSlider() {
     const autoplay = emblaApi.plugins().autoplay;
     if (!autoplay) return;
 
-    if (prefersReducedMotion) {
+    if (prefersReducedMotion || !isInViewport) {
       autoplay.stop();
     } else if (isPlaying) {
       autoplay.play();
     }
-  }, [emblaApi, prefersReducedMotion, isPlaying]);
+  }, [emblaApi, prefersReducedMotion, isPlaying, isInViewport]);
 
   useEffect(() => {
     if (!emblaApi) return;
@@ -273,7 +281,13 @@ export default function HeroSlider() {
     if (!emblaApi) return;
 
     const onSettle = () => {
-      if (prefersReducedMotionRef.current || !isPlayingRef.current) return;
+      if (
+        prefersReducedMotionRef.current ||
+        !isPlayingRef.current ||
+        !isInViewportRef.current
+      ) {
+        return;
+      }
       emblaApi.plugins().autoplay?.play();
       setProgressKey((k) => k + 1);
     };
@@ -313,6 +327,7 @@ export default function HeroSlider() {
 
   return (
     <section
+      ref={sectionRef}
       id="start"
       className="relative w-full max-w-[100vw] h-[85vh] md:h-[88vh] bg-prive-dark overflow-hidden"
       style={{ '--hero-slide-duration': `${SLIDE_DURATION_MS}ms` } as React.CSSProperties}

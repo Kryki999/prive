@@ -13,7 +13,7 @@ export default function LocationMapSection() {
   return (
     <section
       aria-labelledby="location-map-heading"
-      className="w-screen max-w-none bg-prive-white"
+      className="section-deferred--tall w-screen max-w-none bg-prive-white"
       style={{ marginInline: 'calc(50% - 50vw)' }}
     >
       <header className="border-t border-prive-border px-4 pb-8 pt-10 text-center sm:pb-10 sm:pt-12 md:pb-12 md:pt-14">

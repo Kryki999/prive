@@ -64,7 +64,7 @@ export default function DoctorsSection({ doctors, className }: DoctorsSectionPro
     <section
       id="lekarze"
       className={cn(
-        'scroll-mt-[calc(var(--site-header-h,5rem)+1rem)] overflow-hidden border-t border-prive-border bg-prive-white pb-14 pt-8 md:pb-20 md:pt-10',
+        'section-deferred scroll-mt-[calc(var(--site-header-h,5rem)+1rem)] overflow-hidden border-t border-prive-border bg-prive-white pb-14 pt-8 md:pb-20 md:pt-10',
         className,
       )}
     >

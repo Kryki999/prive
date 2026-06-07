@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import createGlobe, { type COBEOptions } from 'cobe';
 import { useMotionValue, useSpring } from 'motion/react';
 
+import useInViewport from '@/hooks/useInViewport';
 import { cn } from '@/lib/utils';
 
 const MOVEMENT_DAMPING = 1400;
@@ -35,6 +36,9 @@ type GlobeProps = {
 };
 
 export function Globe({ className, config = PRIVE_GLOBE_CONFIG }: GlobeProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInViewport = useInViewport(containerRef);
+  const isInViewportRef = useRef(isInViewport);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const phiRef = useRef(0);
   const widthRef = useRef(0);
@@ -64,6 +68,10 @@ export function Globe({ className, config = PRIVE_GLOBE_CONFIG }: GlobeProps) {
   };
 
   useEffect(() => {
+    isInViewportRef.current = isInViewport;
+  }, [isInViewport]);
+
+  useEffect(() => {
     const onResize = () => {
       if (canvasRef.current) {
         widthRef.current = canvasRef.current.offsetWidth;
@@ -73,15 +81,25 @@ export function Globe({ className, config = PRIVE_GLOBE_CONFIG }: GlobeProps) {
     window.addEventListener('resize', onResize);
     onResize();
 
-    const globe = createGlobe(canvasRef.current!, {
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    const mergedConfig: COBEOptions = {
+      ...PRIVE_GLOBE_CONFIG,
       ...config,
-      width: widthRef.current * 2,
-      height: widthRef.current * 2,
+      ...(isMobile ? { mapSamples: 8000, devicePixelRatio: 1 } : {}),
+    };
+    const dpr = mergedConfig.devicePixelRatio ?? 2;
+
+    const globe = createGlobe(canvasRef.current!, {
+      ...mergedConfig,
+      width: widthRef.current * dpr,
+      height: widthRef.current * dpr,
       onRender: (state) => {
-        if (!pointerInteracting.current) phiRef.current += 0.005;
+        if (!pointerInteracting.current && isInViewportRef.current) {
+          phiRef.current += 0.005;
+        }
         state.phi = phiRef.current + rs.get();
-        state.width = widthRef.current * 2;
-        state.height = widthRef.current * 2;
+        state.width = widthRef.current * dpr;
+        state.height = widthRef.current * dpr;
       },
     });
 
@@ -97,6 +115,7 @@ export function Globe({ className, config = PRIVE_GLOBE_CONFIG }: GlobeProps) {
 
   return (
     <div
+      ref={containerRef}
       className={cn(
         'absolute inset-0 mx-auto aspect-square w-full max-w-[28rem] md:max-w-[36rem]',
         className,

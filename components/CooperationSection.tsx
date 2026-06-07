@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import {
   ChevronDown,
   Eye,
-  X,
   MessageCircle,
   CircleCheck,
   CalendarDays,
@@ -14,6 +13,8 @@ import {
   ShieldCheck,
   type LucideIcon,
 } from 'lucide-react';
+import usePrefetchImagesWhenVisible from '@/hooks/usePrefetchImagesWhenVisible';
+import { AKTUALNOSCI_ITEMS } from '@/lib/aktualnosci/data';
 import { cn } from '@/lib/utils';
 
 type FaqItem = {
@@ -132,74 +133,26 @@ function FaqAccordion({
   );
 }
 
-function ClinicImageModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  useEffect(() => {
-    if (!open) return;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    const onEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onEscape);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener('keydown', onEscape);
-    };
-  }, [open, onClose]);
-
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8">
-      <button
-        type="button"
-        className="absolute inset-0 bg-prive-plum/80 backdrop-blur-md"
-        onClick={onClose}
-        aria-label="Zamknij podgląd kliniki"
-      />
-
-      <div className="relative z-10 w-full max-w-4xl overflow-hidden rounded-2xl border border-white/15 bg-prive-white shadow-2xl md:rounded-3xl">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-black/50 text-white backdrop-blur-sm transition hover:bg-prive-rose focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prive-rose"
-          aria-label="Zamknij"
-        >
-          <X className="h-5 w-5" />
-        </button>
-
-        <div className="relative aspect-[5/4] w-full">
-          <Image
-            src={CLINIC_IMAGE}
-            alt="Wnętrze Hair Clinic PRIVÉ w Gdańsku"
-            fill
-            sizes="(max-width: 768px) 100vw, 70vw"
-            className="object-cover"
-            priority
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function CooperationSection() {
+  const sectionRef = useRef<HTMLElement>(null);
   const [openFaqId, setOpenFaqId] = useState<string | null>(null);
-  const [isClinicPreviewOpen, setIsClinicPreviewOpen] = useState(false);
+
+  const aktualnosciPrefetchUrls = useMemo(
+    () => AKTUALNOSCI_ITEMS.slice(0, 3).map((item) => item.image),
+    [],
+  );
+  usePrefetchImagesWhenVisible(sectionRef, aktualnosciPrefetchUrls);
 
   const handleFaqToggle = (id: string) => {
     setOpenFaqId((current) => (current === id ? null : id));
   };
 
   return (
-    <>
       <section
+        ref={sectionRef}
         id="wspolpraca"
         aria-labelledby="cooperation-heading"
-        className="scroll-mt-[calc(var(--site-header-h,5rem)+1rem)] border-t border-prive-border bg-prive-white py-12 md:py-16"
+        className="section-deferred scroll-mt-[calc(var(--site-header-h,5rem)+1rem)] border-t border-prive-border bg-prive-white py-12 md:py-16"
       >
         <div className="mx-auto max-w-6xl px-4 md:px-8">
           <h2 id="cooperation-heading" className="section-title mb-6 md:mb-8">
@@ -236,7 +189,6 @@ export default function CooperationSection() {
                 <div className="absolute inset-x-0 bottom-0 p-4">
                   <button
                     type="button"
-                    onClick={() => setIsClinicPreviewOpen(true)}
                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-white/95 px-4 py-3 text-sm font-bold text-prive-plum shadow-md backdrop-blur-sm transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prive-rose"
                   >
                     <Eye className="h-[18px] w-[18px] text-prive-rose" strokeWidth={2.2} aria-hidden />
@@ -248,8 +200,5 @@ export default function CooperationSection() {
           </div>
         </div>
       </section>
-
-      <ClinicImageModal open={isClinicPreviewOpen} onClose={() => setIsClinicPreviewOpen(false)} />
-    </>
   );
 }

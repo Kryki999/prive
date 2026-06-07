@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import BeforeAfterCard from '@/components/before-after/BeforeAfterCard';
 import {
@@ -24,6 +24,13 @@ type BeforeAfterCarouselProps = {
   onApiReady?: (api: CarouselApi) => void;
 };
 
+function isNearSelectedIndex(index: number, selectedIndex: number, total: number): boolean {
+  if (total <= 2) return true;
+  const direct = Math.abs(index - selectedIndex);
+  const wrapped = Math.min(direct, total - direct);
+  return wrapped <= 1;
+}
+
 export default function BeforeAfterCarousel({
   cases,
   embedded = false,
@@ -32,6 +39,8 @@ export default function BeforeAfterCarousel({
   className,
   onApiReady,
 }: BeforeAfterCarouselProps) {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
   const carouselOpts = useMemo(
     () => ({
       align: 'start' as const,
@@ -47,6 +56,33 @@ export default function BeforeAfterCarousel({
     [cases.length],
   );
 
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
+
+  const handleApiReady = useCallback(
+    (api: CarouselApi) => {
+      setCarouselApi(api);
+      onApiReady?.(api);
+    },
+    [onApiReady],
+  );
+
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [cases.length]);
+
+  useEffect(() => {
+    if (!carouselApi) return;
+
+    const onSelect = () => setSelectedIndex(carouselApi.selectedScrollSnap());
+    onSelect();
+    carouselApi.on('select', onSelect);
+    carouselApi.on('reInit', onSelect);
+    return () => {
+      carouselApi.off('select', onSelect);
+      carouselApi.off('reInit', onSelect);
+    };
+  }, [carouselApi]);
+
   if (!cases.length) return null;
 
   const grid = (
@@ -59,15 +95,15 @@ export default function BeforeAfterCarousel({
 
   const carousel = (
     <div className="relative lg:hidden">
-      <Carousel
-        opts={carouselOpts}
-        setApi={onApiReady}
-        className="w-full"
-      >
+      <Carousel opts={carouselOpts} setApi={handleApiReady} className="w-full">
         <CarouselContent className="-ml-4">
-          {cases.map((caseItem) => (
+          {cases.map((caseItem, index) => (
             <CarouselItem key={caseItem.id} className="basis-full pl-4">
-              <BeforeAfterCard caseItem={caseItem} />
+              {isNearSelectedIndex(index, selectedIndex, cases.length) ? (
+                <BeforeAfterCard caseItem={caseItem} />
+              ) : (
+                <div className="aspect-square w-full rounded-2xl border border-prive-border bg-prive-surface" aria-hidden />
+              )}
             </CarouselItem>
           ))}
         </CarouselContent>

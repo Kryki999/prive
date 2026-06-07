@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Info, Mail } from 'lucide-react';
 
 import BeforeAfterCarousel from '@/components/before-after/BeforeAfterCarousel';
@@ -34,6 +35,7 @@ export interface GameShowcaseSectionProps {
   id?: string;
   jumpTitle: string;
   bgImage: string;
+  bgImageMobile?: string;
   bgAlt: string;
   description: string;
   learnMoreUrl: string;
@@ -98,6 +100,7 @@ export default function GameShowcaseSection({
   id,
   jumpTitle,
   bgImage,
+  bgImageMobile,
   bgAlt,
   description,
   learnMoreUrl,
@@ -130,8 +133,21 @@ export default function GameShowcaseSection({
 
   return (
     <section id={id} className="game-showcase w-full border-t border-prive/20">
-      <div className="game-showcase__sticky-media sticky top-0 z-0 h-[85svh] md:h-[100svh] md:max-h-[900px] w-full overflow-hidden">
-        <img src={bgImage} alt={bgAlt} className="absolute inset-0 h-full w-full object-cover" />
+      <div className="game-showcase__sticky-media relative sticky top-0 z-0 h-[85svh] md:h-[100svh] md:max-h-[900px] w-full overflow-hidden">
+        <Image
+          src={bgImageMobile ?? bgImage}
+          alt={bgAlt}
+          fill
+          sizes="100vw"
+          className="object-cover md:hidden"
+        />
+        <Image
+          src={bgImage}
+          alt={bgAlt}
+          fill
+          sizes="100vw"
+          className="hidden object-cover md:block"
+        />
         <div className="absolute inset-0 bg-gradient-to-r from-prive-dark/80 via-prive/30 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20" />
       </div>

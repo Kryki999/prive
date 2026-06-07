@@ -8,7 +8,7 @@ export default function PreFooterConsultationForm() {
     <section
       id="kontakt"
       aria-labelledby="prefooter-consultation-heading"
-      className="relative w-screen max-w-none scroll-mt-[calc(var(--site-header-h,5rem)+1rem)] border-t border-prive-border bg-prive-white pb-24 pt-20 text-prive-text md:pb-32 md:pt-24 lg:pb-36 lg:pt-28"
+      className="section-deferred--tall relative w-screen max-w-none scroll-mt-[calc(var(--site-header-h,5rem)+1rem)] border-t border-prive-border bg-prive-white pb-24 pt-20 text-prive-text md:pb-32 md:pt-24 lg:pb-36 lg:pt-28"
       style={{ marginInline: 'calc(50% - 50vw)' }}
     >
       <div className="relative mx-auto w-full max-w-[1800px] px-0 md:px-10 lg:px-14 xl:px-16">

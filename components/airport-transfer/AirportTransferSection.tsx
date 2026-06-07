@@ -18,7 +18,7 @@ export default function AirportTransferSection() {
     <section
       id="transfer"
       aria-labelledby="airport-transfer-heading"
-      className="relative w-screen max-w-none scroll-mt-[calc(var(--site-header-h,5rem)+1rem)] border-t border-prive-border bg-prive-white py-16 text-prive-text md:py-24"
+      className="section-deferred--tall relative w-screen max-w-none scroll-mt-[calc(var(--site-header-h,5rem)+1rem)] border-t border-prive-border bg-prive-white py-16 text-prive-text md:py-24"
       style={{ marginInline: 'calc(50% - 50vw)' }}
     >
       <div className="relative mx-auto w-full max-w-[1800px] px-4 md:px-10 lg:px-14 xl:px-16">

@@ -271,6 +271,22 @@
   animation-duration: 105s;
 }
 
+.game-library-marquee--paused .game-library-marquee__track {
+  animation-play-state: paused;
+  will-change: auto;
+}
+
+/* Below-fold sections — skip layout/paint until near viewport */
+.section-deferred {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+
+.section-deferred--tall {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+
 /* Certyfikaty — górny i dolny fade na karty (wzorzec hero-glow) */
 .certificates-scrim-top {
   position: absolute;

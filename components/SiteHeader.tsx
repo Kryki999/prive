@@ -158,11 +158,8 @@ export default function SiteHeader() {
     apply();
     const ro = new ResizeObserver(apply);
     ro.observe(el);
-    const onScroll = () => apply();
-    window.addEventListener('scroll', onScroll, { passive: true });
     return () => {
       ro.disconnect();
-      window.removeEventListener('scroll', onScroll);
       document.documentElement.style.removeProperty('--site-header-h');
     };
   }, []);
