@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import useEmblaCarousel from 'embla-carousel-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useConfigurator } from '@/components/consultation-form/configurator-shared';
 import { SectionGradientHeading } from '@/components/ui/section-gradient-heading';
 import { SERVICE_TILE_PHOTO, serviceCardImage } from '@/lib/site-images';
 import { cn } from '@/lib/utils';
@@ -96,17 +97,17 @@ const TILES: TileConfig[] = [
   {
     id: 'przeszczep-wlosow',
     title: 'Przeszczep włosów',
-    tags: 'Zabieg · FUE/DHI',
+    tags: 'Zabieg · FUE / DHI / Sapphire',
     article:
-      'Przeszczep włosów w Hair Clinic PRIVÉ łączy precyzyjne techniki FUE i DHI z indywidualnym planem gęstości i linii frontu. Zabieg przeprowadzany jest w komfortowych warunkach klinicznych z pełną opieką zespołu na każdym etapie — od konsultacji po kontrolę pooperacyjną.',
+      'Klinika transplantacji włosów PRIVÉ oferuje wysokiej jakości certyfikowane przeszczepy metodami FUE, Sapphire FUE oraz DHI. W przeciwieństwie do metody FUT nie wymagamy liniowych nacięć ani szwów — zapewniamy minimalną inwazyjność, brak linijnych blizn i krótki czas rekonwalescencji. Podczas pobierania graftów stosujemy Micro FUE z najmniejszymi narzędziami na rynku, a do implantacji — precyzyjną metodę DHI z przeżywalnością graftów przekraczającą 90%. Ogromną uwagę przykładamy do projektowania naturalnej linii włosów zgodnie z europejskimi standardami estetyki. Cały zabieg przeprowadzamy w znieczuleniu miejscowym, z pełną opieką zespołu od konsultacji po kontrolę pooperacyjną.',
     imageSrc: serviceCardImage(SERVICE_TILE_PHOTO['przeszczep-wlosow']),
   },
   {
     id: 'brwi',
     title: 'Brwi',
-    tags: 'Regeneracja · Brwi',
+    tags: 'Zabieg · FUE',
     article:
-      'Odbudowa i wzmocnienie brwi z wykorzystaniem nowoczesnych metod regeneracyjnych. Zabieg dopasowujemy do kształtu twarzy i oczekiwań estetycznych, aby uzyskać naturalny, harmonijny efekt.',
+      'Przeszczep brwi metodą FUE może być wykonywany u mężczyzn i kobiet w każdym wieku. To jeden z najbardziej wymagających zabiegów transplantacji — brwi mają ogromny wpływ na wygląd twarzy, mimikę i naturalne proporcje, dlatego każdy włos musi zostać wszczepiony pod odpowiednim kątem, kierunkiem wzrostu i na właściwej głębokości. Mieszki pobierane są w postaci pojedynczych przeszczepów o wielkości 0,5–0,7 mm, a następnie umieszczane w przygotowanych mikrokanałach. W Hair Clinic PRIVÉ każdy zabieg planujemy indywidualnie — uwzględniamy proporcje twarzy, oczekiwania pacjenta i naturalny układ włosów, aby uzyskać harmonijny, estetyczny efekt.',
     imageSrc: serviceCardImage(SERVICE_TILE_PHOTO.brwi),
   },
   {
@@ -114,15 +115,15 @@ const TILES: TileConfig[] = [
     title: 'Klinika estetyczna',
     tags: 'Medycyna · Estetyka',
     article:
-      'Kompleksowa oferta medycyny estetycznej w premiumowej oprawie PRIVÉ. Od konsultacji po zabiegi wspierające młody wygląd skóry i twarzy — zawsze z naciskiem na bezpieczeństwo i naturalny rezultat.',
+      'Hair Clinic PRIVÉ to nie tylko transplantacja włosów — oferujemy kompleksową ofertę medycyny estetycznej w premiumowej oprawie naszej kliniki w centrum Gdańska. Wśród zabiegów znajdziesz m.in. osocze bogatopłytkowe (PRP), które stymuluje wzrost włosów i regenerację skóry głowy, oraz procedury wspierające młody wygląd twarzy. Każdy zabieg poprzedzony jest konsultacją lekarską. Stawiamy na bezpieczeństwo, naturalny rezultat i indywidualne dopasowanie efektu do europejskich standardów wyglądu — tak jak w przypadku naszych przeszczepów włosów.',
     imageSrc: serviceCardImage(SERVICE_TILE_PHOTO['klinika-estetyczna']),
   },
   {
     id: 'przeszczep-brody',
     title: 'Przeszczep brody',
-    tags: 'Zabieg · Broda',
+    tags: 'Zabieg · FUE / DHI',
     article:
-      'Przeszczep brody pozwala uzyskać gęstą, naturalną linię zarostu dopasowaną do rysów twarzy. Planujemy kształt, gęstość i kierunek włosów tak, by efekt był spójny i trwały.',
+      'Nowoczesny przeszczep brody metodą FUE DHI pozwala odbudować zarost w miejscach przerzedzeń, blizn lub całkowitego braku owłosienia. Zabieg wykonywany jest w znieczuleniu miejscowym — efekt jest naturalny, trwały i wolny od linijnych blizn. Kluczowe znaczenie mają odpowiedni kąt wszczepienia graftów, właściwa głębokość implantacji oraz dobór mieszków włosowych. Najczęściej wykorzystujemy włosy z dolnej części szyi pacjenta, aby zachować identyczną strukturę i kierunek wzrostu typowy dla zarostu brody. Dzięki temu przeszczep brody wygląda naturalnie i jest praktycznie niezauważalny.',
     imageSrc: serviceCardImage(SERVICE_TILE_PHOTO['przeszczep-brody']),
   },
   {
@@ -130,7 +131,7 @@ const TILES: TileConfig[] = [
     title: 'Trychopigmentacja',
     tags: 'Zabieg · SMP',
     article:
-      'Trychopigmentacja (SMP) to nieinwazyjna metoda opticznego zagęszczenia owłosienia lub wygładzenia blizn skóry głowy. Pigment aplikowany jest punktowo, imitując naturalne cebelki włosów.',
+      'Trychopigmentacja (SMP) to nieinwazyjna metoda optycznego zagęszczenia owłosienia lub wygładzenia blizn na skórze głowy. Pigment wprowadzany jest punktowo w skórę, imitując naturalne cebelki włosów — to doskonałe rozwiązanie przy przerzedzeniach, łysieniu androgenowym lub po przeszczepie, gdy potrzebne jest dodatkowe zagęszczenie. Zabieg nie wymaga rekonwalescencji chirurgicznej, przebiega ambulatoryjnie i pozwala szybko odzyskać pewność siebie oraz spójny wygląd fryzury.',
     imageSrc: serviceCardImage(SERVICE_TILE_PHOTO.trychopigmentacja),
   },
 ];
@@ -224,6 +225,7 @@ export default function ServicesBentoGrid({ className }: { className?: string })
   const isDesktop = useIsDesktop();
   const isOpen = activeTile !== null;
   const shouldGoBackOnCloseRef = useRef(false);
+  const { open: openConsultation } = useConfigurator();
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: 'start',
@@ -413,18 +415,12 @@ export default function ServicesBentoGrid({ className }: { className?: string })
                 />
 
                 <div className="fixed inset-0 z-[221] flex items-center justify-center pointer-events-none md:p-6">
-                  <motion.article
-                    key={`service-modal-${activeTile.id}`}
-                    layoutId={layoutCardId(layoutScope, activeTile.id)}
-                    transition={panelTransition}
+                  <div
                     className={cn(
-                      'pointer-events-auto overflow-hidden bg-[var(--prive-modal-surface)] text-white',
-                      'h-[100dvh] w-screen max-h-[100dvh] rounded-none',
-                      'md:h-[min(92vh,980px)] md:w-[min(94vw,1160px)] md:max-h-[min(92vh,980px)] md:rounded-3xl md:ring-1 md:ring-white/12',
+                      'pointer-events-auto relative',
+                      'h-[100dvh] w-screen max-h-[100dvh]',
+                      'md:h-[min(92vh,980px)] md:w-[min(94vw,1160px)] md:max-h-[min(92vh,980px)]',
                     )}
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label={activeTile.title}
                   >
                     <motion.button
                       type="button"
@@ -434,12 +430,24 @@ export default function ServicesBentoGrid({ className }: { className?: string })
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.78 }}
                       transition={{ delay: 0.16, duration: 0.24, ease: 'easeOut' }}
-                      className="absolute right-[max(1rem,env(safe-area-inset-right))] top-[max(1rem,env(safe-area-inset-top))] z-[4] inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-black/45 text-white backdrop-blur-md transition hover:bg-prive/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prive-rose"
+                      className="absolute right-[max(1rem,env(safe-area-inset-right))] top-[max(1rem,env(safe-area-inset-top))] z-[10] inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-black/45 text-white backdrop-blur-md transition hover:bg-prive/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prive-rose"
                     >
                       <X className="h-5 w-5" strokeWidth={2.3} />
                     </motion.button>
 
-                    <div className="no-scrollbar h-full overflow-x-hidden overflow-y-auto overscroll-contain">
+                    <motion.article
+                      key={`service-modal-${activeTile.id}`}
+                      layoutId={layoutCardId(layoutScope, activeTile.id)}
+                      transition={panelTransition}
+                      className={cn(
+                        'h-full w-full overflow-hidden bg-[var(--prive-modal-surface)] text-white',
+                        'rounded-none md:rounded-3xl md:ring-1 md:ring-white/12',
+                      )}
+                      role="dialog"
+                      aria-modal="true"
+                      aria-label={activeTile.title}
+                    >
+                      <div className="no-scrollbar h-full overflow-x-hidden overflow-y-auto overscroll-contain">
                       <div className="relative">
                         <motion.div
                           layoutId={layoutImageId(layoutScope, activeTile.id)}
@@ -486,28 +494,25 @@ export default function ServicesBentoGrid({ className }: { className?: string })
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 14 }}
                         transition={{ delay: 0.24, duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-                        className="mx-auto w-full max-w-3xl px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-8 md:px-10 md:pb-14 md:pt-10"
+                        className="mx-auto flex w-full max-w-3xl flex-col items-center px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-8 text-center md:px-10 md:pb-14 md:pt-10"
                       >
                         <p className="text-pretty text-sm leading-7 text-white/82 md:text-[1.03rem] md:leading-8">
                           {activeTile.article}
                         </p>
                         <button
                           type="button"
-                          className="btn-prive mt-8 w-full sm:w-auto px-8 py-3.5 text-sm"
+                          className="btn-prive mt-8 px-8 py-3.5 text-sm"
                           onClick={() => {
                             setActiveTile(null);
-                            window.setTimeout(() => {
-                              document
-                                .getElementById('kalkulator-graftow')
-                                ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }, 280);
+                            requestAnimationFrame(() => openConsultation());
                           }}
                         >
-                          Konfigurator
+                          Darmowa konsultacja lekarska
                         </button>
                       </motion.div>
-                    </div>
-                  </motion.article>
+                      </div>
+                    </motion.article>
+                  </div>
                 </div>
               </>
             ) : null}
