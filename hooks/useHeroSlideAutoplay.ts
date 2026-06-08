@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type { EmblaCarouselType } from 'embla-carousel';
 
 type AutoplayPhase = 'idle' | 'running' | 'pausedTouch' | 'suspended';
@@ -16,7 +16,7 @@ export interface UseHeroSlideAutoplayOptions {
 }
 
 export interface UseHeroSlideAutoplayResult {
-  progress: number;
+  registerProgressFill: (el: HTMLDivElement | null) => void;
   isPlaying: boolean;
   onSlideAreaPointerDown: () => void;
   onSlideAreaPointerUp: () => void;
@@ -31,8 +31,6 @@ export default function useHeroSlideAutoplay({
   enabled,
   userWantsPlay,
 }: UseHeroSlideAutoplayOptions): UseHeroSlideAutoplayResult {
-  const [progress, setProgress] = useState(0);
-
   const phaseRef = useRef<AutoplayPhase>('idle');
   const slideStartedAtRef = useRef(0);
   const slideEndsAtRef = useRef(0);
@@ -41,6 +39,7 @@ export default function useHeroSlideAutoplay({
   const touchPauseStartedAtRef = useRef(0);
   const isAdvancingRef = useRef(false);
   const rafRef = useRef(0);
+  const progressFillsRef = useRef<Set<HTMLDivElement>>(new Set());
 
   const userWantsPlayRef = useRef(userWantsPlay);
   const enabledRef = useRef(enabled);
@@ -57,6 +56,21 @@ export default function useHeroSlideAutoplay({
   useEffect(() => {
     emblaApiRef.current = emblaApi;
   }, [emblaApi]);
+
+  const applyProgress = useCallback((value: number) => {
+    const scale = clamp(value, 0, 1);
+    progressFillsRef.current.forEach((el) => {
+      el.style.transform = `scaleX(${scale})`;
+    });
+  }, []);
+
+  const registerProgressFill = useCallback((el: HTMLDivElement | null) => {
+    if (!el) return;
+    progressFillsRef.current.add(el);
+    return () => {
+      progressFillsRef.current.delete(el);
+    };
+  }, []);
 
   const shouldAutoplay = useCallback(() => {
     return userWantsPlayRef.current && enabledRef.current;
@@ -84,8 +98,8 @@ export default function useHeroSlideAutoplay({
     savedRemainingMsRef.current = null;
     isAdvancingRef.current = false;
     phaseRef.current = 'running';
-    setProgress(0);
-  }, [durationMs]);
+    applyProgress(0);
+  }, [applyProgress, durationMs]);
 
   const enterIdle = useCallback(() => {
     phaseRef.current = 'idle';
@@ -111,7 +125,7 @@ export default function useHeroSlideAutoplay({
       const phase = phaseRef.current;
 
       if (phase === 'running' && shouldAutoplay()) {
-        setProgress(computeProgress(now));
+        applyProgress(computeProgress(now));
 
         if (now >= slideEndsAtRef.current && !isAdvancingRef.current) {
           advanceSlide();
@@ -124,16 +138,16 @@ export default function useHeroSlideAutoplay({
     };
 
     rafRef.current = requestAnimationFrame(tick);
-  }, [advanceSlide, computeProgress, shouldAutoplay, stopLoop]);
+  }, [advanceSlide, applyProgress, computeProgress, shouldAutoplay, stopLoop]);
 
   const suspendTimer = useCallback(() => {
     if (phaseRef.current === 'running' || phaseRef.current === 'pausedTouch') {
       savedRemainingMsRef.current = Math.max(0, slideEndsAtRef.current - performance.now());
-      setProgress(computeProgress(performance.now()));
+      applyProgress(computeProgress(performance.now()));
     }
     phaseRef.current = 'suspended';
     stopLoop();
-  }, [computeProgress, stopLoop]);
+  }, [applyProgress, computeProgress, stopLoop]);
 
   const resumeFromSuspend = useCallback(() => {
     if (!shouldAutoplay()) {
@@ -149,9 +163,9 @@ export default function useHeroSlideAutoplay({
     slideStartedAtRef.current = now - (durationMs - clampedRemaining);
     savedRemainingMsRef.current = null;
     phaseRef.current = 'running';
-    setProgress(computeProgress(now));
+    applyProgress(computeProgress(now));
     startLoop();
-  }, [computeProgress, durationMs, enterIdle, shouldAutoplay, startLoop]);
+  }, [applyProgress, computeProgress, durationMs, enterIdle, shouldAutoplay, startLoop]);
 
   const notifySlideSelected = useCallback(() => {
     isAdvancingRef.current = false;
@@ -172,10 +186,10 @@ export default function useHeroSlideAutoplay({
     slideAtPointerDownRef.current = api.selectedScrollSnap();
     touchPauseStartedAtRef.current = performance.now();
     if (phaseRef.current === 'running') {
-      setProgress(computeProgress(touchPauseStartedAtRef.current));
+      applyProgress(computeProgress(touchPauseStartedAtRef.current));
     }
     phaseRef.current = 'pausedTouch';
-  }, [computeProgress, shouldAutoplay]);
+  }, [applyProgress, computeProgress, shouldAutoplay]);
 
   const onSlideAreaPointerUp = useCallback(() => {
     const api = emblaApiRef.current;
@@ -236,7 +250,7 @@ export default function useHeroSlideAutoplay({
   const isPlaying = userWantsPlay && enabled;
 
   return {
-    progress,
+    registerProgressFill,
     isPlaying,
     onSlideAreaPointerDown,
     onSlideAreaPointerUp,

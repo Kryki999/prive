@@ -1,17 +1,13 @@
-'use client';
-
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
 
+import HomeVideoBridge from '@/components/HomeVideoBridge';
 import SiteHeader from '@/components/SiteHeader';
 import HeroSlider from '@/components/HeroSlider';
 import GraftCalculatorSection from '@/components/graft-calculator/GraftCalculatorSection';
 import Newswire from '@/components/Newswire';
 import Footer from '@/components/Footer';
-import TrailerModal from '@/components/TrailerModal';
 import { DOCTORS } from '@/lib/doctors/doctors';
 
-const GameDetails = dynamic(() => import('@/components/GameDetails'), { ssr: true });
 const CertificatesSection = dynamic(
   () => import('@/components/certificates/CertificatesSection'),
   { ssr: true },
@@ -38,15 +34,13 @@ const LocationMapSection = dynamic(() => import('@/components/LocationMapSection
 });
 
 export default function HomePage() {
-  const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
-
   return (
     <div className="relative min-h-screen overflow-x-clip bg-prive-white text-prive-text selection:bg-prive-rose selection:text-white">
       <SiteHeader />
       <HeroSlider />
       <Newswire />
       <GraftCalculatorSection />
-      <GameDetails onPlayVideo={setActiveVideoUrl} />
+      <HomeVideoBridge />
       <CertificatesSection />
       <DoctorsSection doctors={DOCTORS} />
       <CooperationSection />
@@ -55,7 +49,6 @@ export default function HomePage() {
       <PreFooterConsultationForm />
       <LocationMapSection />
       <Footer />
-      <TrailerModal videoUrl={activeVideoUrl} onClose={() => setActiveVideoUrl(null)} />
     </div>
   );
 }

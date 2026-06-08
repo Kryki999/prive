@@ -6,14 +6,11 @@ import { useConfigurator } from '@/components/consultation-form/configurator-sha
 import { SectionGradientHeading } from '@/components/ui/section-gradient-heading';
 import GraftSummary from '@/components/graft-calculator/GraftSummary';
 
-import ScalpMap, {
-
+import LazyScalpMap from '@/components/graft-calculator/LazyScalpMap';
+import {
   SCALP_FOCAL_DESKTOP,
-
   SCALP_FOCAL_MOBILE,
-
   SCALP_FOCAL_TABLET,
-
 } from '@/components/graft-calculator/ScalpMap';
 
 import ZoneList from '@/components/graft-calculator/ZoneList';
@@ -75,7 +72,7 @@ export default function GraftCalculatorSection() {
 
         <div className="relative mx-auto mt-10 hidden min-h-[520px] max-w-6xl xl:mt-12 xl:block">
 
-          <ScalpMap
+          <LazyScalpMap
 
             zones={zones}
 
@@ -135,7 +132,7 @@ export default function GraftCalculatorSection() {
 
         <div className="mx-auto mt-8 hidden max-w-4xl lg:mt-10 lg:block xl:hidden">
 
-          <ScalpMap
+          <LazyScalpMap
 
             zones={zones}
 
@@ -201,7 +198,7 @@ export default function GraftCalculatorSection() {
 
 
 
-          <ScalpMap
+          <LazyScalpMap
 
             zones={zones}
 

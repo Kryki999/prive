@@ -185,6 +185,25 @@
   position: relative;
   isolation: isolate;
   background-color: var(--newswire-bg-glow);
+  --newswire-bg-progress: 1;
+}
+
+@keyframes newswire-bg-reveal {
+  from {
+    --newswire-bg-progress: 0;
+  }
+  to {
+    --newswire-bg-progress: 1;
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  .newswire-scroll-bg {
+    --newswire-bg-progress: 0;
+    animation: newswire-bg-reveal linear both;
+    animation-timeline: scroll(root);
+    animation-range: entry 0% cover 65%;
+  }
 }
 
 .newswire-scroll-bg__layer {
@@ -233,6 +252,15 @@
   pointer-events: none;
   background-color: var(--prive-white);
   opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.site-header[data-scrolled='true'] .site-header__bg {
+  opacity: 0.92;
+}
+
+.site-header[data-menu-open='true'] .site-header__bg {
+  opacity: 1;
 }
 
 /* Game showcase — sticky scroll-over hero (Rockstar-style) */
@@ -269,6 +297,11 @@
 .game-library-marquee--paused .game-library-marquee__track {
   animation-play-state: paused;
   will-change: auto;
+}
+
+html.is-scrolling .game-library-marquee__track,
+html.is-scrolling .hero-credentials-marquee__track {
+  animation-play-state: paused;
 }
 
 /* Hero slide 3 — slow credentials text marquee */

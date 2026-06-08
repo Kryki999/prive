@@ -94,14 +94,12 @@ export default function SiteHeader() {
   const isAtHeroRef = useRef(onHome);
   const hiddenRef = useRef(false);
   const lastScrollRef = useRef(0);
-  const bgLayerRef = useRef<HTMLDivElement>(null);
   const overlayOpen = menuOpen || newsfeedOpen || consultationOpen;
   const scrollLockOpen = menuOpen || newsfeedOpen;
 
   useEffect(() => {
     const header = headerRef.current;
-    const bgLayer = bgLayerRef.current;
-    if (!header || !bgLayer) return;
+    if (!header) return;
 
     let ticking = false;
     let rafId = 0;
@@ -110,11 +108,11 @@ export default function SiteHeader() {
       ticking = false;
       const current = window.scrollY;
       const atHero = onHome && current < 90 && !menuOpen && !overlayOpen;
-      const scrolled = current > 12;
+      const scrolled = current >= 90;
 
-      bgLayer.style.opacity = menuOpen ? '1' : String(Math.min(current / 108, 1) * 0.92);
       header.dataset.scrolled = scrolled ? 'true' : 'false';
       header.dataset.atHero = atHero ? 'true' : 'false';
+      header.dataset.menuOpen = menuOpen ? 'true' : 'false';
 
       if (atHero !== isAtHeroRef.current) {
         isAtHeroRef.current = atHero;
@@ -339,7 +337,7 @@ export default function SiteHeader() {
           ease: PRIVE_EASE,
         }}
       >
-        <div ref={bgLayerRef} className="site-header__bg" aria-hidden />
+        <div className="site-header__bg" aria-hidden />
         <div
           className={cn(
             'relative z-10 mx-auto flex w-full max-w-[1600px] items-center justify-between gap-2 md:gap-3',

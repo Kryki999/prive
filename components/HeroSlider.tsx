@@ -126,7 +126,7 @@ function SlideContent({ slide }: { slide: Slide }) {
 interface HeroControlsProps {
   variant: 'desktop' | 'mobile';
   currentSlide: number;
-  slideProgress: number;
+  registerProgressFill: (el: HTMLDivElement | null) => void;
   isPlaying: boolean;
   prefersReducedMotion: boolean;
   onTogglePlay: () => void;
@@ -136,7 +136,7 @@ interface HeroControlsProps {
 function HeroControls({
   variant,
   currentSlide,
-  slideProgress,
+  registerProgressFill,
   isPlaying,
   prefersReducedMotion,
   onTogglePlay,
@@ -155,9 +155,8 @@ function HeroControls({
     </button>
   );
 
-  const progressScale = prefersReducedMotion ? 1 : slideProgress;
   const progressFillClass = 'absolute inset-0 origin-left rounded-full bg-white';
-  const progressStyle = { transform: `scaleX(${progressScale})` };
+  const progressStyle = prefersReducedMotion ? { transform: 'scaleX(1)' } : undefined;
 
   if (variant === 'desktop') {
     return (
@@ -171,7 +170,11 @@ function HeroControls({
                 className="relative h-1.5 w-10 rounded-full bg-white/30 overflow-hidden"
                 aria-hidden
               >
-                <div className={progressFillClass} style={progressStyle} />
+                <div
+                  ref={prefersReducedMotion ? undefined : registerProgressFill}
+                  className={progressFillClass}
+                  style={progressStyle}
+                />
               </div>
             ) : (
               <button
@@ -201,7 +204,11 @@ function HeroControls({
             aria-current={idx === currentSlide ? 'true' : undefined}
           >
             {idx === currentSlide ? (
-              <div className={progressFillClass} style={progressStyle} />
+              <div
+                ref={prefersReducedMotion ? undefined : registerProgressFill}
+                className={progressFillClass}
+                style={progressStyle}
+              />
             ) : null}
           </button>
         ))}
@@ -228,7 +235,7 @@ export default function HeroSlider() {
   const autoplayEnabled = isInViewport && !prefersReducedMotion;
 
   const {
-    progress: slideProgress,
+    registerProgressFill,
     isPlaying,
     onSlideAreaPointerDown,
     onSlideAreaPointerUp,
@@ -301,7 +308,7 @@ export default function HeroSlider() {
 
   const controlsProps = {
     currentSlide,
-    slideProgress,
+    registerProgressFill,
     isPlaying,
     prefersReducedMotion,
     onTogglePlay: handleTogglePlay,

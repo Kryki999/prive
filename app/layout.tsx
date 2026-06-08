@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { ConfiguratorProvider } from '@/components/consultation-form/ConfiguratorProvider';
+import ScrollPerfProvider from '@/components/ScrollPerfProvider';
 import { bebasNeue, montserrat } from '@/lib/fonts';
 
 import './globals.css';
@@ -18,7 +19,9 @@ export default function RootLayout({
   return (
     <html lang="pl" className={`${montserrat.variable} ${bebasNeue.variable}`}>
       <body>
-        <ConfiguratorProvider>{children}</ConfiguratorProvider>
+        <ConfiguratorProvider>
+          <ScrollPerfProvider>{children}</ScrollPerfProvider>
+        </ConfiguratorProvider>
       </body>
     </html>
   );

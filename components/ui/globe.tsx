@@ -13,12 +13,12 @@ export const PRIVE_GLOBE_CONFIG: COBEOptions = {
   width: 800,
   height: 800,
   onRender: () => {},
-  devicePixelRatio: 2,
+  devicePixelRatio: 1,
   phi: 0,
   theta: 0.3,
   dark: 1,
   diffuse: 1.2,
-  mapSamples: 20000,
+  mapSamples: 8000,
   mapBrightness: 10,
   mapBaseBrightness: 0,
   baseColor: [0.95, 0.9, 0.93],
@@ -72,6 +72,8 @@ export function Globe({ className, config = PRIVE_GLOBE_CONFIG }: GlobeProps) {
   }, [isInViewport]);
 
   useEffect(() => {
+    if (!isInViewport || !canvasRef.current) return;
+
     const onResize = () => {
       if (canvasRef.current) {
         widthRef.current = canvasRef.current.offsetWidth;
@@ -81,20 +83,20 @@ export function Globe({ className, config = PRIVE_GLOBE_CONFIG }: GlobeProps) {
     window.addEventListener('resize', onResize);
     onResize();
 
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
     const mergedConfig: COBEOptions = {
       ...PRIVE_GLOBE_CONFIG,
       ...config,
-      ...(isMobile ? { mapSamples: 8000, devicePixelRatio: 1 } : {}),
     };
-    const dpr = mergedConfig.devicePixelRatio ?? 2;
+    const dpr = mergedConfig.devicePixelRatio ?? 1;
 
-    const globe = createGlobe(canvasRef.current!, {
+    const globe = createGlobe(canvasRef.current, {
       ...mergedConfig,
       width: widthRef.current * dpr,
       height: widthRef.current * dpr,
       onRender: (state) => {
-        if (!pointerInteracting.current && isInViewportRef.current) {
+        if (!isInViewportRef.current) return;
+
+        if (!pointerInteracting.current) {
           phiRef.current += 0.005;
         }
         state.phi = phiRef.current + rs.get();
@@ -103,15 +105,16 @@ export function Globe({ className, config = PRIVE_GLOBE_CONFIG }: GlobeProps) {
       },
     });
 
-    setTimeout(() => {
+    const revealTimer = window.setTimeout(() => {
       if (canvasRef.current) canvasRef.current.style.opacity = '1';
     }, 0);
 
     return () => {
+      window.clearTimeout(revealTimer);
       globe.destroy();
       window.removeEventListener('resize', onResize);
     };
-  }, [rs, config]);
+  }, [isInViewport, rs, config]);
 
   return (
     <div
