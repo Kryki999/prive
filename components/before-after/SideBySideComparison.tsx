@@ -2,6 +2,10 @@
 
 import Image from 'next/image';
 
+import {
+  COMPARISON_IMAGE_CLASS,
+  COMPARISON_SIDE_BY_SIDE_ZOOM_CLASS,
+} from '@/components/before-after/types';
 import { cn } from '@/lib/utils';
 
 type SideBySideComparisonProps = {
@@ -31,28 +35,32 @@ export default function SideBySideComparison({
       aria-label={title ? `Porównanie przed i po: ${title}` : 'Porównanie przed i po zabiegu'}
     >
       <div className="relative h-full min-h-0 overflow-hidden">
-        <Image
-          src={beforeImage}
-          alt={title ? `Przed zabiegiem — ${title}` : beforeLabel}
-          fill
-          sizes="(max-width: 1024px) 45vw, 12vw"
-          className="object-cover object-top"
-          draggable={false}
-        />
+        <div className={COMPARISON_SIDE_BY_SIDE_ZOOM_CLASS}>
+          <Image
+            src={beforeImage}
+            alt={title ? `Przed zabiegiem — ${title}` : beforeLabel}
+            fill
+            sizes="(max-width: 1024px) 45vw, 12vw"
+            className={COMPARISON_IMAGE_CLASS}
+            draggable={false}
+          />
+        </div>
         <div className="absolute top-3 left-2 z-10 rounded-full border border-white/20 bg-white/15 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm sm:left-3 sm:px-2.5 sm:py-1 sm:text-xs">
           {beforeLabel}
         </div>
       </div>
 
       <div className="relative h-full min-h-0 overflow-hidden border-l border-white/10">
-        <Image
-          src={afterImage}
-          alt={title ? `Po zabiegu — ${title}` : afterLabel}
-          fill
-          sizes="(max-width: 1024px) 45vw, 12vw"
-          className="object-cover object-top"
-          draggable={false}
-        />
+        <div className={COMPARISON_SIDE_BY_SIDE_ZOOM_CLASS}>
+          <Image
+            src={afterImage}
+            alt={title ? `Po zabiegu — ${title}` : afterLabel}
+            fill
+            sizes="(max-width: 1024px) 45vw, 12vw"
+            className={COMPARISON_IMAGE_CLASS}
+            draggable={false}
+          />
+        </div>
         <div className="absolute top-3 right-2 z-10 rounded-full bg-prive-rose/90 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm sm:right-3 sm:px-2.5 sm:py-1 sm:text-xs">
           {afterLabel}
         </div>

@@ -20,6 +20,22 @@ function unsplash(
   return `https://images.unsplash.com/photo-${photo}?${params}`;
 }
 
+/** Lokalne zdjęcia hero w public/ — hero1–3: slider, hero4–5: sekcje showcase. */
+const LOCAL_HERO_IMAGES = {
+  handsomeMan: '/hero1.jpg',
+  barberRazor: '/hero2.jpg',
+  barberShop: '/hero3.jpg',
+  patientStories: '/hero4.jpg',
+  hairTransplant: '/hero5.jpg',
+} as const;
+
+/** Lokalne zdjęcia usług w public/. */
+const LOCAL_SERVICE_IMAGES = {
+  hairTransplant: '/hair.jpg',
+  barberRazor: '/beard.jpg',
+  manFace: '/eyebraw.jpg',
+} as const;
+
 /** Identyfikatory zdjęć Unsplash (timestamp-hash). */
 const PHOTOS = {
   /** Przystojny mężczyzna – pewność siebie, gęste włosy */
@@ -47,6 +63,8 @@ export function treatmentThumb(photo: keyof typeof PHOTOS): string {
 }
 
 export function serviceCardImage(photo: keyof typeof PHOTOS): string {
+  const local = LOCAL_SERVICE_IMAGES[photo as keyof typeof LOCAL_SERVICE_IMAGES];
+  if (local) return local;
   return unsplash(PHOTOS[photo], { w: 1200, h: 900, crop: 'entropy' });
 }
 
@@ -60,9 +78,9 @@ export function heroMobile(photo: keyof typeof PHOTOS): string {
 
 /** Obrazy kafelków formularza (krok 1) – używane też na kartach usług. */
 export const TREATMENT_IMAGES = {
-  'hair-transplant': treatmentThumb('hairTransplant'),
-  'beard-transplant': treatmentThumb('barberRazor'),
-  'eyebrow-transplant': treatmentThumb('manFace'),
+  'hair-transplant': LOCAL_SERVICE_IMAGES.hairTransplant,
+  'beard-transplant': LOCAL_SERVICE_IMAGES.barberRazor,
+  'eyebrow-transplant': LOCAL_SERVICE_IMAGES.manFace,
   trichopigmentation: treatmentThumb('hairDensity'),
   'prp-therapy': treatmentThumb('medical'),
   other: treatmentThumb('clinic'),
@@ -130,6 +148,10 @@ export const HERO_SLIDE_CONFIG: HeroSlideConfig[] = [
 ];
 
 export function resolveHeroSlideImages(photo: keyof typeof PHOTOS) {
+  const local = LOCAL_HERO_IMAGES[photo as keyof typeof LOCAL_HERO_IMAGES];
+  if (local) {
+    return { desktop: local, mobile: local };
+  }
   return {
     desktop: heroDesktop(photo),
     mobile: heroMobile(photo),
@@ -152,18 +174,13 @@ export function articleCover(photo: keyof typeof PHOTOS): string {
   return unsplash(PHOTOS[photo], { w: 1200, h: 900, crop: 'entropy' });
 }
 
-/** Pełnoekranowe tło — entropy zamiast faces, żeby kadr nie ucinał twarzy. */
-export const PATIENT_STORIES_SHOWCASE_IMAGE = unsplash(PHOTOS.patientStories, {
-  w: 2400,
-  h: 1350,
-  crop: 'entropy',
-});
+/** Pełnoekranowe tło sekcji showcase — lokalne zdjęcia z public/. */
+export const PATIENT_STORIES_SHOWCASE_IMAGE = LOCAL_HERO_IMAGES.patientStories;
+export const PATIENT_STORIES_SHOWCASE_IMAGE_MOBILE = LOCAL_HERO_IMAGES.patientStories;
+export const BEFORE_AFTER_SHOWCASE_IMAGE = LOCAL_HERO_IMAGES.hairTransplant;
+export const BEFORE_AFTER_SHOWCASE_IMAGE_MOBILE = LOCAL_HERO_IMAGES.hairTransplant;
 
 /** Lżejsze tło sticky showcase na mobile (85svh). */
 export function showcaseStickyMobile(photo: keyof typeof PHOTOS): string {
   return unsplash(PHOTOS[photo], { w: 1080, h: 1620, crop: 'entropy' });
 }
-
-export const PATIENT_STORIES_SHOWCASE_IMAGE_MOBILE = showcaseStickyMobile('patientStories');
-export const BEFORE_AFTER_SHOWCASE_IMAGE = showcaseWide('hairTransplant');
-export const BEFORE_AFTER_SHOWCASE_IMAGE_MOBILE = showcaseStickyMobile('hairTransplant');

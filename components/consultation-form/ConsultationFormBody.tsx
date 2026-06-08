@@ -7,7 +7,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 import ConsultationPhoneInput from './ConsultationPhoneInput';
-import NorwoodScalePicker from './NorwoodScalePicker';
+import HairLossSituationPicker from './HairLossSituationPicker';
 import PhotoUpload from './PhotoUpload';
 import {
   HAIR_TRANSPLANT_ID,
@@ -71,7 +71,7 @@ export default function ConsultationFormBody({
   const [step, setStep] = useState<ConsultationStep>(1);
   const [direction, setDirection] = useState(1);
   const [treatment, setTreatment] = useState<TreatmentId | ''>('');
-  const [norwoodLevel, setNorwoodLevel] = useState<number | null>(null);
+  const [hairLossSituation, setHairLossSituation] = useState<number | null>(null);
   const [description, setDescription] = useState('');
   const [photos, setPhotos] = useState<File[]>([]);
   const [name, setName] = useState('');
@@ -150,7 +150,7 @@ export default function ConsultationFormBody({
     setStep(1);
     setDirection(1);
     setTreatment('');
-    setNorwoodLevel(null);
+    setHairLossSituation(null);
     setDescription('');
     setPhotos([]);
     setName('');
@@ -165,8 +165,8 @@ export default function ConsultationFormBody({
   const validateStep2 = () => {
     const errors: Record<string, string> = {};
     if (treatment === HAIR_TRANSPLANT_ID) {
-      if (!norwoodLevel) {
-        errors.norwood = 'Wybierz stopień, który najbardziej przypomina Twój stan.';
+      if (!hairLossSituation) {
+        errors.hairLoss = 'Wybierz sytuację, która najbardziej przypomina Twój stan.';
       }
     } else if (description.trim().length < 8) {
       errors.description = 'Opisz krótko efekt, jaki chcesz osiągnąć.';
@@ -201,8 +201,8 @@ export default function ConsultationFormBody({
     try {
       const fd = new FormData();
       fd.set('treatment', treatment);
-      if (treatment === HAIR_TRANSPLANT_ID && norwoodLevel) {
-        fd.set('norwoodLevel', String(norwoodLevel));
+      if (treatment === HAIR_TRANSPLANT_ID && hairLossSituation) {
+        fd.set('hairLossSituation', String(hairLossSituation));
       } else {
         fd.set('description', description.trim());
       }
@@ -430,14 +430,14 @@ export default function ConsultationFormBody({
               <div className="space-y-7">
                 {treatment === HAIR_TRANSPLANT_ID ? (
                   <div className="space-y-3">
-                    <p className={labelClass}>Wybierz stopień łysienia (Skala Norwooda)</p>
-                    <NorwoodScalePicker
-                      value={norwoodLevel}
-                      onChange={setNorwoodLevel}
+                    <p className={labelClass}>Wybierz sytuację najbliższą Twojemu stanowi</p>
+                    <HairLossSituationPicker
+                      value={hairLossSituation}
+                      onChange={setHairLossSituation}
                       variant={mode}
                     />
-                    {fieldErrors.norwood ? (
-                      <p className="text-xs text-red-400">{fieldErrors.norwood}</p>
+                    {fieldErrors.hairLoss ? (
+                      <p className="text-xs text-red-400">{fieldErrors.hairLoss}</p>
                     ) : null}
                   </div>
                 ) : showTextarea ? (

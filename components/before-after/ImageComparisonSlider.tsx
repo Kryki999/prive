@@ -4,6 +4,10 @@ import { useCallback, useRef, useState } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+import {
+  COMPARISON_IMAGE_CLASS,
+  COMPARISON_IMAGE_ZOOM_CLASS,
+} from '@/components/before-after/types';
 import { cn } from '@/lib/utils';
 
 type ImageComparisonSliderProps = {
@@ -97,29 +101,33 @@ export default function ImageComparisonSlider({
       onPointerCancel={handlePointerUp}
       onKeyDown={handleKeyDown}
     >
-      <div className="absolute inset-0">
-        <Image
-          src={afterImage}
-          alt={title ? `Po zabiegu — ${title}` : afterLabel}
-          fill
-          sizes="(max-width: 1024px) 90vw, 25vw"
-          className="object-cover object-top"
-          draggable={false}
-        />
+      <div className="absolute inset-0 overflow-hidden">
+        <div className={COMPARISON_IMAGE_ZOOM_CLASS}>
+          <Image
+            src={afterImage}
+            alt={title ? `Po zabiegu — ${title}` : afterLabel}
+            fill
+            sizes="(max-width: 1024px) 90vw, 25vw"
+            className={COMPARISON_IMAGE_CLASS}
+            draggable={false}
+          />
+        </div>
       </div>
 
       <div
         className="absolute inset-0 overflow-hidden"
         style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
       >
-        <Image
-          src={beforeImage}
-          alt={title ? `Przed zabiegiem — ${title}` : beforeLabel}
-          fill
-          sizes="(max-width: 1024px) 90vw, 25vw"
-          className="object-cover object-top"
-          draggable={false}
-        />
+        <div className={COMPARISON_IMAGE_ZOOM_CLASS}>
+          <Image
+            src={beforeImage}
+            alt={title ? `Przed zabiegiem — ${title}` : beforeLabel}
+            fill
+            sizes="(max-width: 1024px) 90vw, 25vw"
+            className={COMPARISON_IMAGE_CLASS}
+            draggable={false}
+          />
+        </div>
       </div>
 
       <div

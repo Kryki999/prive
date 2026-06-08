@@ -42,7 +42,7 @@ export default function GraftCalculatorSection() {
 
     >
 
-      Umów darmową konsultację
+      Rozpocznij analizę włosów
 
     </button>
 

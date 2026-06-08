@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
 import {
+  getHairLossSituationLabel,
   HAIR_TRANSPLANT_ID,
   TREATMENT_LABELS,
   type TreatmentId,
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     const treatment = ((formData.get('treatment') as string) || '') as TreatmentId;
-    const norwoodLevel = ((formData.get('norwoodLevel') as string) || '').trim();
+    const hairLossSituation = ((formData.get('hairLossSituation') as string) || '').trim();
     const description = ((formData.get('description') as string) || '').trim();
     const name = ((formData.get('name') as string) || '').trim();
     const phone = ((formData.get('phone') as string) || '').trim();
@@ -50,10 +51,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (treatment === HAIR_TRANSPLANT_ID) {
-      const level = Number(norwoodLevel);
-      if (!Number.isInteger(level) || level < 1 || level > 7) {
+      const situationId = Number(hairLossSituation);
+      if (!Number.isInteger(situationId) || situationId < 1 || situationId > 6) {
         return NextResponse.json(
-          { error: 'Wybierz stopień Skali Norwooda.' },
+          { error: 'Wybierz sytuację wypadania włosów.' },
           { status: 400 },
         );
       }
@@ -96,9 +97,10 @@ export async function POST(request: NextRequest) {
       'Hair Clinic PRIVÉ <onboarding@resend.dev>';
 
     const treatmentLabel = TREATMENT_LABELS[treatment];
+    const hairLossLabel = getHairLossSituationLabel(Number(hairLossSituation));
     const analysisCell =
       treatment === HAIR_TRANSPLANT_ID
-        ? `Norwood ${escapeHtml(norwoodLevel)}`
+        ? escapeHtml(hairLossLabel ?? hairLossSituation)
         : escapeHtml(description);
 
     const safe = {

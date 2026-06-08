@@ -16,7 +16,7 @@ type BeforeAfterCardProps = {
 const COMPARISON_ASPECT = 'aspect-square w-full';
 
 export default function BeforeAfterCard({ caseItem, className }: BeforeAfterCardProps) {
-  const [viewMode, setViewMode] = useState<ComparisonViewMode>('sideBySide');
+  const [viewMode, setViewMode] = useState<ComparisonViewMode>('slider');
 
   return (
     <article

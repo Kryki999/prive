@@ -43,6 +43,16 @@ export default function ReelCard({ reel, onClick, className }: ReelCardProps) {
             sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 25vw"
             className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
           />
+        ) : reel.videoUrl ? (
+          <video
+            src={`${reel.videoUrl}#t=0.5`}
+            preload="metadata"
+            muted
+            playsInline
+            aria-hidden
+            tabIndex={-1}
+            className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+          />
         ) : (
           <div className="absolute inset-0 bg-prive-plum/80" />
         )}

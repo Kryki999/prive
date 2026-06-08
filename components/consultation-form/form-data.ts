@@ -49,15 +49,43 @@ export const TEXTAREA_TREATMENTS: TreatmentId[] = [
   'other',
 ];
 
-export const NORWOOD_LEVELS = [
-  { level: 1, label: 'Norwood I' },
-  { level: 2, label: 'Norwood II' },
-  { level: 3, label: 'Norwood III' },
-  { level: 4, label: 'Norwood IV' },
-  { level: 5, label: 'Norwood V' },
-  { level: 6, label: 'Norwood VI' },
-  { level: 7, label: 'Norwood VII' },
+/** Ilustracje sytuacji wypadania włosów (wzorzec Cosmedica, polskie nazwy). */
+export const HAIR_LOSS_SITUATIONS = [
+  {
+    id: 1,
+    label: 'Brak wypadania włosów',
+    imageUrl: '/hair-loss/situation-1.svg',
+  },
+  {
+    id: 2,
+    label: 'Lekko cofnięta linia włosów',
+    imageUrl: '/hair-loss/situation-2.svg',
+  },
+  {
+    id: 3,
+    label: 'Lekko cofnięta linia włosów + łysiejąca tonsura',
+    imageUrl: '/hair-loss/situation-3.svg',
+  },
+  {
+    id: 4,
+    label: 'Mocno zarysowane zakoła + łysiejąca tonsura',
+    imageUrl: '/hair-loss/situation-4.svg',
+  },
+  {
+    id: 5,
+    label: 'Półłysy',
+    imageUrl: '/hair-loss/situation-5.svg',
+  },
+  {
+    id: 6,
+    label: 'Łysy',
+    imageUrl: '/hair-loss/situation-6.svg',
+  },
 ] as const;
+
+export function getHairLossSituationLabel(id: number): string | undefined {
+  return HAIR_LOSS_SITUATIONS.find((situation) => situation.id === id)?.label;
+}
 
 export { CONSULTATION_FORM_IMAGE };
 

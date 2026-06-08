@@ -8,10 +8,12 @@ function reelAlt(title: string): string {
   return `${name} — pacjent Hair Clinic PRIVÉ`;
 }
 
-/** Miniatury social proof w hero — podmień na zdjęcia z public/ po zgodach pacjentów. */
+const REEL_AVATAR_FALLBACKS = ['/hair.jpg', '/beard.jpg', '/eyebraw.jpg', '/hair.jpg'] as const;
+
+/** Miniatury social proof w hero — poster z rolki lub zdjęcie usługi jako fallback. */
 export const HERO_TRUST_AVATARS: AvatarCircleItem[] = PATIENT_STORY_REELS.slice(0, 4).map(
-  (reel) => ({
-    imageUrl: reel.posterUrl,
+  (reel, index) => ({
+    imageUrl: reel.posterUrl ?? REEL_AVATAR_FALLBACKS[index],
     alt: reelAlt(reel.title),
     href: STORIES_HREF,
   }),
