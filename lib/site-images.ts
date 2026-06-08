@@ -20,12 +20,12 @@ function unsplash(
   return `https://images.unsplash.com/photo-${photo}?${params}`;
 }
 
-/** Lokalne zdjęcia hero w public/ — hero1–3: slider, hero4–5: sekcje showcase. */
+/** Lokalne zdjęcia hero w public/ — hero1–3: slider, hero5–6: sekcje showcase. */
 const LOCAL_HERO_IMAGES = {
   handsomeMan: '/hero1.jpg',
   barberRazor: '/hero2.jpg',
   barberShop: '/hero3.jpg',
-  patientStories: '/hero4.jpg',
+  patientStories: '/hero6.jpg',
   hairTransplant: '/hero5.jpg',
 } as const;
 
