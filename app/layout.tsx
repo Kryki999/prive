@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 import { ConfiguratorProvider } from '@/components/consultation-form/ConfiguratorProvider';
 import { bebasNeue, montserrat } from '@/lib/fonts';
@@ -19,6 +20,7 @@ export default function RootLayout({
     <html lang="pl" className={`${montserrat.variable} ${bebasNeue.variable}`}>
       <body>
         <ConfiguratorProvider>{children}</ConfiguratorProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
