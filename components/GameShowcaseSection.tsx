@@ -132,8 +132,8 @@ export default function GameShowcaseSection({
     useBeforeAfter || (!useReels && !useBeforeAfter && features.length > 0);
 
   return (
-    <section className="game-showcase w-full border-t border-prive/20">
-      <div className="game-showcase__sticky-media relative sticky top-0 z-0 h-[85svh] md:h-[100svh] md:max-h-[900px] w-full overflow-hidden">
+    <section className="game-showcase section-deferred--tall w-full border-t border-prive/20">
+      <div className="game-showcase__sticky-media relative z-0 h-[85svh] md:h-[85svh] md:max-h-[760px] w-full overflow-hidden">
         <Image
           src={bgImageMobile ?? bgImage}
           alt={bgAlt}
@@ -152,8 +152,8 @@ export default function GameShowcaseSection({
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20" />
       </div>
 
-      <div className="game-showcase__foreground relative z-10 -mt-[32svh] md:-mt-[50vh]">
-        <div className="game-showcase__content-runway flex min-h-[32svh] flex-col justify-end md:min-h-[50vh]">
+      <div className="game-showcase__foreground relative z-10 -mt-[32svh] md:-mt-[42svh]">
+        <div className="game-showcase__content-runway flex min-h-[32svh] flex-col justify-end md:min-h-[42svh]">
           <div className="game-showcase__content-panel bg-gradient-to-t from-black/95 via-black/65 to-transparent px-6 pb-10 pt-10 sm:px-12 md:px-20 md:pb-14 md:pt-14">
             <div className="flex max-w-5xl flex-col items-start gap-4 md:gap-5">
               <div className="flex w-full min-w-0 flex-row items-center gap-3 md:gap-7 lg:gap-8">

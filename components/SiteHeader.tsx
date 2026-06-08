@@ -2,14 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  AnimatePresence,
-  motion,
-  useMotionTemplate,
-  useMotionValueEvent,
-  useScroll,
-  useTransform,
-} from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { Bell, Menu, Phone, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react';
 
@@ -97,54 +90,79 @@ export default function SiteHeader() {
     [closeConsultation, closeMenu, closeNewsfeed, onHome],
   );
 
-  const { scrollY } = useScroll();
-
-  /* Większy górny odstęp na hero — duże logo nie może stykać się z krawędzią viewportu. */
-  const padTop = useTransform(scrollY, [0, 110], [40, 9]);
-  const padBottom = useTransform(scrollY, [0, 110], [16, 9]);
-  const bgAlpha = useTransform(scrollY, [0, 108], [0, 0.72]);
-  const blurPx = useTransform(scrollY, [0, 96], [0, 12]);
-
-  const headerBg = useMotionTemplate`rgba(255, 255, 255, ${bgAlpha})`;
-  const backdropBlur = useTransform(blurPx, (v) =>
-    v < 0.75 ? 'blur(0px)' : `blur(${v.toFixed(1)}px)`,
-  );
-
   const [hidden, setHidden] = useState(false);
+  const isAtHeroRef = useRef(onHome);
+  const hiddenRef = useRef(false);
   const lastScrollRef = useRef(0);
+  const bgLayerRef = useRef<HTMLDivElement>(null);
   const overlayOpen = menuOpen || newsfeedOpen || consultationOpen;
   const scrollLockOpen = menuOpen || newsfeedOpen;
 
-  useMotionValueEvent(scrollY, 'change', (current) => {
-    if (!onHome) {
-      setIsAtHero(false);
-    } else {
-      setIsAtHero(current < 90);
-    }
-
-    if (overlayOpen) {
-      setHidden(false);
-      lastScrollRef.current = current;
-      return;
-    }
-    if (current < 90) {
-      setHidden(false);
-      lastScrollRef.current = current;
-      return;
-    }
-    const delta = current - lastScrollRef.current;
-    if (delta > 6) setHidden(true);
-    else if (delta < -4) setHidden(false);
-    lastScrollRef.current = current;
-  });
-
   useEffect(() => {
-    setIsAtHero(onHome && window.scrollY < 90);
-  }, [onHome]);
+    const header = headerRef.current;
+    const bgLayer = bgLayerRef.current;
+    if (!header || !bgLayer) return;
 
-  useEffect(() => {
-    if (overlayOpen) setHidden(false);
-  }, [overlayOpen]);
+    let ticking = false;
+    let rafId = 0;
+
+    const update = () => {
+      ticking = false;
+      const current = window.scrollY;
+      const atHero = onHome && current < 90 && !menuOpen && !overlayOpen;
+      const scrolled = current > 12;
+
+      bgLayer.style.opacity = menuOpen ? '1' : String(Math.min(current / 108, 1) * 0.92);
+      header.dataset.scrolled = scrolled ? 'true' : 'false';
+      header.dataset.atHero = atHero ? 'true' : 'false';
+
+      if (atHero !== isAtHeroRef.current) {
+        isAtHeroRef.current = atHero;
+        setIsAtHero(atHero);
+      }
+
+      if (overlayOpen) {
+        if (hiddenRef.current) {
+          hiddenRef.current = false;
+          setHidden(false);
+        }
+        lastScrollRef.current = current;
+        return;
+      }
+
+      let nextHidden = hiddenRef.current;
+      if (current < 90) {
+        nextHidden = false;
+      } else {
+        const delta = current - lastScrollRef.current;
+        if (delta > 6) nextHidden = true;
+        else if (delta < -4) nextHidden = false;
+      }
+
+      if (nextHidden !== hiddenRef.current) {
+        hiddenRef.current = nextHidden;
+        setHidden(nextHidden);
+      }
+      lastScrollRef.current = current;
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        rafId = requestAnimationFrame(update);
+      }
+    };
+
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      cancelAnimationFrame(rafId);
+    };
+  }, [onHome, menuOpen, overlayOpen]);
 
   useEffect(() => {
     const el = headerRef.current;
@@ -313,34 +331,18 @@ export default function SiteHeader() {
 
       <motion.header
         ref={headerRef}
-        className="fixed left-0 top-0 z-[100] w-full px-4 will-change-transform md:px-[6vw]"
+        className="site-header fixed left-0 top-0 z-[100] w-full px-4 md:px-[6vw]"
         initial={{ y: 0 }}
         animate={{ y: hidden ? '-110%' : '0%' }}
         transition={{
           duration: hidden ? 0.42 : 0.55,
           ease: PRIVE_EASE,
         }}
-        style={
-          menuOpen
-            ? {
-                paddingTop: padTop,
-                paddingBottom: padBottom,
-                backgroundColor: 'var(--prive-white)',
-                backdropFilter: 'none',
-                WebkitBackdropFilter: 'none',
-              }
-            : {
-                paddingTop: padTop,
-                paddingBottom: padBottom,
-                backgroundColor: headerBg,
-                backdropFilter: backdropBlur,
-                WebkitBackdropFilter: backdropBlur,
-              }
-        }
       >
+        <div ref={bgLayerRef} className="site-header__bg" aria-hidden />
         <div
           className={cn(
-            'relative mx-auto flex w-full max-w-[1600px] items-center justify-between gap-2 md:gap-3',
+            'relative z-10 mx-auto flex w-full max-w-[1600px] items-center justify-between gap-2 md:gap-3',
             useHeroStyle && 'min-h-11 md:min-h-12',
           )}
         >

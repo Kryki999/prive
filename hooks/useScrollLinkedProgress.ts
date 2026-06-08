@@ -22,6 +22,7 @@ export default function useScrollLinkedProgress(
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let ticking = false;
     let scrollDetached = false;
+    let lastQuantized = -1;
 
     const detachScrollListeners = () => {
       if (scrollDetached) return;
@@ -42,8 +43,12 @@ export default function useScrollLinkedProgress(
       const scrolledInto = viewportHeight - rect.top;
       const threshold = Math.max(rect.height * completeAt, 1);
       const progress = clamp(scrolledInto / threshold, 0, 1);
+      const quantized = Math.round(progress * 20) / 20;
 
-      el.style.setProperty(cssVar, String(progress));
+      if (quantized !== lastQuantized) {
+        lastQuantized = quantized;
+        el.style.setProperty(cssVar, String(quantized));
+      }
 
       if (progress >= 1 && rect.bottom < 0) {
         detachScrollListeners();

@@ -194,6 +194,8 @@
   pointer-events: none;
   background-color: var(--prive-white);
   opacity: var(--newswire-bg-progress);
+  contain: paint;
+  transform: translateZ(0);
 }
 
 .newswire-scroll-bg__layer::before {
@@ -210,6 +212,29 @@
   opacity: calc(1 - var(--newswire-bg-progress));
 }
 
+/* Site header — scroll bez backdrop-blur (opacity + padding przez CSS) */
+.site-header {
+  padding-top: 2.5rem;
+  padding-bottom: 1rem;
+  transition:
+    padding-top 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    padding-bottom 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.site-header[data-scrolled='true'] {
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+
+.site-header__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: var(--prive-white);
+  opacity: 0;
+}
+
 /* Game showcase — sticky scroll-over hero (Rockstar-style) */
 .game-showcase {
   position: relative;
@@ -219,6 +244,9 @@
 .game-showcase__sticky-media {
   position: sticky;
   top: 0;
+  contain: layout style paint;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* Game Library — infinite horizontal marquee (logo-ticker pattern) */
