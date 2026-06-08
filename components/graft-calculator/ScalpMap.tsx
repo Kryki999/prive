@@ -306,6 +306,12 @@ export default function ScalpMap({
 
         draggable={false}
 
+        loading="eager"
+
+        fetchPriority="high"
+
+        decoding="async"
+
         className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
 
       />

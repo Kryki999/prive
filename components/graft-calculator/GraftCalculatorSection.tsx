@@ -1,17 +1,16 @@
 'use client';
 
-
+import { useEffect } from 'react';
 
 import { useConfigurator } from '@/components/consultation-form/configurator-shared';
 import { SectionGradientHeading } from '@/components/ui/section-gradient-heading';
 import GraftSummary from '@/components/graft-calculator/GraftSummary';
-
-import LazyScalpMap from '@/components/graft-calculator/LazyScalpMap';
-import {
+import ScalpMap, {
   SCALP_FOCAL_DESKTOP,
   SCALP_FOCAL_MOBILE,
   SCALP_FOCAL_TABLET,
 } from '@/components/graft-calculator/ScalpMap';
+import { SCALP_IMAGE } from '@/lib/graft-calculator/zones';
 
 import ZoneList from '@/components/graft-calculator/ZoneList';
 
@@ -25,7 +24,14 @@ export default function GraftCalculatorSection() {
 
   const { zones, isSelected, toggle, totals } = useGraftCalculator();
 
-
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = SCALP_IMAGE.src;
+    document.head.appendChild(link);
+    return () => link.remove();
+  }, []);
 
   const consultationCta = (
 
@@ -72,7 +78,7 @@ export default function GraftCalculatorSection() {
 
         <div className="relative mx-auto mt-10 hidden min-h-[520px] max-w-6xl xl:mt-12 xl:block">
 
-          <LazyScalpMap
+          <ScalpMap
 
             zones={zones}
 
@@ -132,7 +138,7 @@ export default function GraftCalculatorSection() {
 
         <div className="mx-auto mt-8 hidden max-w-4xl lg:mt-10 lg:block xl:hidden">
 
-          <LazyScalpMap
+          <ScalpMap
 
             zones={zones}
 
@@ -198,7 +204,7 @@ export default function GraftCalculatorSection() {
 
 
 
-          <LazyScalpMap
+          <ScalpMap
 
             zones={zones}
 
