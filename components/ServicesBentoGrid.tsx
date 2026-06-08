@@ -104,7 +104,7 @@ const TILES: TileConfig[] = [
   },
   {
     id: 'brwi',
-    title: 'Brwi',
+    title: 'Przeszczep brwi',
     tags: 'Zabieg · FUE',
     article:
       'Przeszczep brwi metodą FUE może być wykonywany u mężczyzn i kobiet w każdym wieku. To jeden z najbardziej wymagających zabiegów transplantacji — brwi mają ogromny wpływ na wygląd twarzy, mimikę i naturalne proporcje, dlatego każdy włos musi zostać wszczepiony pod odpowiednim kątem, kierunkiem wzrostu i na właściwej głębokości. Mieszki pobierane są w postaci pojedynczych przeszczepów o wielkości 0,5–0,7 mm, a następnie umieszczane w przygotowanych mikrokanałach. W Hair Clinic PRIVÉ każdy zabieg planujemy indywidualnie — uwzględniamy proporcje twarzy, oczekiwania pacjenta i naturalny układ włosów, aby uzyskać harmonijny, estetyczny efekt.',
