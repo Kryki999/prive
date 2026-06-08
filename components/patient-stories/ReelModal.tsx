@@ -109,7 +109,7 @@ export default function ReelModal({
             type="button"
             onClick={() => onOpenChange(false)}
             className={cn(
-              'absolute right-3 top-3 z-50',
+              'absolute right-3 top-3 z-[60]',
               'flex h-11 w-11 items-center justify-center rounded-full',
               'border border-white/20 bg-black/50 backdrop-blur-sm',
               'transition-colors hover:bg-black/70',
