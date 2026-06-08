@@ -10,15 +10,7 @@
   --prive-border: #EBEBEB;
   --prive-text: #1A1A1A;
   --prive-text-muted: #6B6B6B;
-  --newswire-bg-glow: #D0A3BE;
-  --newswire-bg-progress: 0;
   --prive-modal-surface: #1A0F18;
-}
-
-@property --newswire-bg-progress {
-  syntax: '<number>';
-  inherits: true;
-  initial-value: 0;
 }
 
 @layer base {
@@ -179,56 +171,6 @@
     rgba(229, 0, 126, 0.1) 48%,
     transparent 100%
   );
-}
-
-.newswire-scroll-bg {
-  position: relative;
-  isolation: isolate;
-  background-color: var(--newswire-bg-glow);
-  --newswire-bg-progress: 1;
-}
-
-@keyframes newswire-bg-reveal {
-  from {
-    --newswire-bg-progress: 0;
-  }
-  to {
-    --newswire-bg-progress: 1;
-  }
-}
-
-@supports (animation-timeline: scroll()) {
-  .newswire-scroll-bg {
-    --newswire-bg-progress: 0;
-    animation: newswire-bg-reveal linear both;
-    animation-timeline: scroll(root);
-    animation-range: entry 0% cover 65%;
-  }
-}
-
-.newswire-scroll-bg__layer {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-color: var(--prive-white);
-  opacity: var(--newswire-bg-progress);
-  contain: paint;
-  transform: translateZ(0);
-}
-
-.newswire-scroll-bg__layer::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 220px;
-  background: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--prive-plum) 32%, transparent) 0%,
-    color-mix(in srgb, var(--prive-rose) 14%, transparent) 55%,
-    transparent 100%
-  );
-  opacity: calc(1 - var(--newswire-bg-progress));
 }
 
 /* Site header — scroll bez backdrop-blur (opacity + padding przez CSS) */

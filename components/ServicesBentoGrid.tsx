@@ -313,7 +313,7 @@ export default function ServicesBentoGrid({ className }: { className?: string })
   return (
     <>
       <div
-        className={cn('w-full max-w-6xl mx-auto', className)}
+        className={cn('w-full max-w-6xl mx-auto bg-white', className)}
         role="region"
         aria-labelledby="uslugi-heading"
       >
