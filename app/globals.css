@@ -244,9 +244,6 @@
 .game-showcase__sticky-media {
   position: sticky;
   top: 0;
-  contain: layout style paint;
-  transform: translateZ(0);
-  backface-visibility: hidden;
 }
 
 /* Game Library — infinite horizontal marquee (logo-ticker pattern) */
