@@ -132,7 +132,7 @@ export default function GameShowcaseSection({
     useBeforeAfter || (!useReels && !useBeforeAfter && features.length > 0);
 
   return (
-    <section id={id} className="game-showcase w-full border-t border-prive/20">
+    <section className="game-showcase w-full border-t border-prive/20">
       <div className="game-showcase__sticky-media relative sticky top-0 z-0 h-[85svh] md:h-[100svh] md:max-h-[900px] w-full overflow-hidden">
         <Image
           src={bgImageMobile ?? bgImage}
@@ -192,7 +192,10 @@ export default function GameShowcaseSection({
           </div>
         </div>
 
-        <div className="bg-prive-white py-16">
+        <div
+          id={id}
+          className="scroll-mt-[calc(var(--site-header-h,5rem)+1rem)] bg-prive-white py-16"
+        >
           <div className="max-w-7xl mx-auto px-4 md:px-8">
             <div className="mb-8 flex items-center justify-between gap-4">
               <h3 className={SECTION_GRADIENT_HEADING_CLASS}>{jumpTitle}</h3>
